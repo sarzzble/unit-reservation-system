@@ -2,6 +2,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status, permissions
 from datetime import timedelta, date
+from rest_framework_simplejwt.tokens import RefreshToken
 from .models import Unit, Reservation, ShiftList, SystemSetting
 from .serializers import LoginSerializer, LogoutSerializer, RegisterSerializer, UnitSerializer, ReservationSerializer, MyReservationSerializer, ShiftListSerializer, UserUpdateSerializer
 from rest_framework.permissions import IsAuthenticated
@@ -22,8 +23,9 @@ class LoginAPIView(APIView):
         serializer.is_valid(raise_exception=True)
         user = serializer.validated_data["user"]
         
-        #### Token kısmı 
-
+        # Token oluştur
+        refresh = RefreshToken.for_user(user)
+        
         return Response({
             "user": {
                 "name": user.first_name,
@@ -31,6 +33,10 @@ class LoginAPIView(APIView):
                 "student_number": user.student_number,
                 "email": user.email,
                 "student_class": user.student_class
+            },
+            "tokens": {
+                "access": str(refresh.access_token),
+                "refresh": str(refresh)
             }
         }, status=status.HTTP_200_OK)
 
@@ -39,16 +45,13 @@ class LogoutAPIView(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
-        serializer = LogoutSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-
-        refresh_token = serializer.validated_data["refresh"]
-
-        # refresh token blacklist kısmı 
-        
-        return Response({
-            "message": "Çıkış isteği alındı. Token iptali sistemde yapılacak."
-        }, status=status.HTTP_205_RESET_CONTENT)
+        try:
+            refresh_token = request.data["refresh"]
+            token = RefreshToken(refresh_token)
+            token.blacklist()
+            return Response({"message": "Başarıyla çıkış yapıldı."}, status=status.HTTP_205_RESET_CONTENT)
+        except Exception as e:
+            return Response({"error": "Geçersiz token."}, status=status.HTTP_400_BAD_REQUEST)
 
 class UserUpdateAPIView(APIView):
     permission_classes = [IsAuthenticated]
