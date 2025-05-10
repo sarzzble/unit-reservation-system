@@ -1,7 +1,6 @@
 "use client";
 
 import * as z from "zod";
-import { useState, useTransition } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { LoginSchema } from "../../schemas";
@@ -17,41 +16,41 @@ import {
 import { Input } from "../ui/input";
 import { Button } from "../ui/button";
 import FormError from "../form-error";
-import FormSuccess from "../form-success";
-
-import { login } from "@/actions/login";
+import { login } from "@/lib/api/auth";
+import { useState } from "react";
 
 export default function LoginForm() {
-  const [error, setError] = useState<string | undefined>("");
-  const [success, setSuccess] = useState<string | undefined>("");
-  const [isPending, startTransition] = useTransition();
+  const [isPending, setIsPending] = useState<boolean>(false);
+  const [errorMessage, setErrorMessage] = useState<string>("");
 
   const form = useForm<z.infer<typeof LoginSchema>>({
     resolver: zodResolver(LoginSchema),
     defaultValues: {
-      email: "",
+      student_number: "",
       password: "",
     },
   });
 
-  const onSubmit = (values: z.infer<typeof LoginSchema>) => {
-    setError("");
-    setSuccess("");
+  const onSubmit = async (values: z.infer<typeof LoginSchema>) => {
+    setIsPending(true);
+    const result = await login(values);
 
-    startTransition(() => {
-      login(values).then((res) => {
-        setError(res.error);
-        setSuccess(res.success);
-      });
-    });
+    if ("message" in result) {
+      setIsPending(false);
+      setErrorMessage(result.message);
+      return;
+    }
+
+    setIsPending(false);
+    setErrorMessage("");
   };
 
   return (
     <CardWrapper
-      headerLabel="Unit Rezervasyon Sistemine Hoşgeldiniz"
+      headerTitle="Öğrenci Girişi"
       backButtonLabel="Üyeliğiniz yok mu?"
       backButtonHref="/auth/register"
-      showSocial
+      type="login"
     >
       <Form {...form}>
         <form
@@ -62,15 +61,16 @@ export default function LoginForm() {
           <div className="space-y-4">
             <FormField
               control={form.control}
-              name="email"
+              name="student_number"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Email</FormLabel>
+                  <FormLabel>Öğrenci Numarası</FormLabel>
                   <FormControl>
                     <Input
                       {...field}
-                      placeholder="Email adresinizi girin"
-                      type="email"
+                      placeholder="Öğrenci numaranızı girin"
+                      type="text"
+                      maxLength={12}
                       disabled={isPending}
                     />
                   </FormControl>
@@ -83,12 +83,13 @@ export default function LoginForm() {
               name="password"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Email</FormLabel>
+                  <FormLabel>Şifre</FormLabel>
                   <FormControl>
                     <Input
                       {...field}
                       placeholder="********"
                       type="password"
+                      minLength={6}
                       disabled={isPending}
                     />
                   </FormControl>
@@ -98,16 +99,14 @@ export default function LoginForm() {
             />
           </div>
 
-          <FormError message={error} />
-          <FormSuccess message={success} />
-
           <Button
             type="submit"
-            className="w-full cursor-pointer"
+            className="bg-blue-500 text-white px-4 py-2 rounded w-full cursor-pointer"
             disabled={isPending}
           >
-            Login
+            Giriş Yap
           </Button>
+          {errorMessage && <FormError message={errorMessage} />}
         </form>
       </Form>
     </CardWrapper>

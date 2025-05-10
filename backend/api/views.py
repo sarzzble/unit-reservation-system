@@ -12,8 +12,9 @@ class RegisterView(APIView):
         serializer = RegisterSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
-            return Response({"message": "Kayıt başarılı"}, status=status.HTTP_201_CREATED)
+            return Response({"success_message": "Kayıt başarılı"}, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 # Giriş
 class LoginAPIView(APIView):
     def post(self, request):
@@ -24,7 +25,6 @@ class LoginAPIView(APIView):
         #### Token kısmı 
 
         return Response({
-            "message": "Giriş başarılı. Token oluşturulacak.",
             "user": {
                 "name": user.first_name,
                 "surname": user.last_name,
@@ -32,8 +32,8 @@ class LoginAPIView(APIView):
                 "email": user.email,
                 "student_class": user.student_class
             }
-
         }, status=status.HTTP_200_OK)
+
 # Çıkış
 class LogoutAPIView(APIView):
     permission_classes = [IsAuthenticated]

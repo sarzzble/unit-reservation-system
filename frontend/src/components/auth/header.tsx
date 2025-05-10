@@ -1,12 +1,11 @@
 interface HeaderProps {
-  label: string;
+  title: string;
 }
 
-export default function Header({ label }: HeaderProps) {
+export default function Header({ title }: HeaderProps) {
   return (
     <div className="w-full flex flex-col gap-y-4 items-center justify-center">
-      <h1 className="text-2xl font-semibold">Unit Rezervasyon Sistemi</h1>
-      <p className="text-muted-foreground text-sm">{label}</p>
+      <h1 className="text-2xl font-semibold">{title}</h1>
     </div>
   );
 }

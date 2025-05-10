@@ -1,7 +1,7 @@
 "use client";
 
 import * as z from "zod";
-import { useState, useTransition } from "react";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { RegisterSchema } from "../../schemas";
@@ -17,42 +17,52 @@ import {
 import { Input } from "../ui/input";
 import { Button } from "../ui/button";
 import FormError from "../form-error";
+import { register } from "@/lib/api/auth";
 import FormSuccess from "../form-success";
-
-import { register } from "@/actions/register";
+import { useRouter } from "next/navigation";
 
 export default function RegisterForm() {
-  const [error, setError] = useState<string | undefined>("");
-  const [success, setSuccess] = useState<string | undefined>("");
-  const [isPending, startTransition] = useTransition();
+  const [isPending, setIsPending] = useState<boolean>(false);
+  const [errorMessage, setErrorMessage] = useState<string>("");
+  const [successMessage, setSuccessMessage] = useState<string>("");
+
+  const router = useRouter();
 
   const form = useForm<z.infer<typeof RegisterSchema>>({
     resolver: zodResolver(RegisterSchema),
     defaultValues: {
+      student_number: "",
+      first_name: "",
+      last_name: "",
       email: "",
       password: "",
-      name: "",
+      password2: "",
     },
   });
 
-  const onSubmit = (values: z.infer<typeof RegisterSchema>) => {
-    setError("");
-    setSuccess("");
+  const onSubmit = async (values: z.infer<typeof RegisterSchema>) => {
+    setIsPending(true);
+    const result = await register(values);
 
-    startTransition(() => {
-      register(values).then((res) => {
-        setError(res.error);
-        setSuccess(res.success);
-      });
-    });
+    if ("message" in result) {
+      setIsPending(false);
+      setErrorMessage(result.message);
+      return;
+    }
+
+    setSuccessMessage("Kayıt başarılı");
+    setIsPending(false);
+    setErrorMessage("");
+
+    router.push("/auth/login");
   };
 
   return (
     <CardWrapper
-      headerLabel="Create an account"
-      backButtonLabel="Already have an account?"
+      headerTitle="Öğrenci Kayıt"
+      backButtonLabel="Zaten bir hesabım var."
       backButtonHref="/auth/login"
-      showSocial
+      type="register"
     >
       <Form {...form}>
         <form
@@ -61,71 +71,131 @@ export default function RegisterForm() {
           noValidate
         >
           <div className="space-y-4">
-            <FormField
-              control={form.control}
-              name="email"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Email</FormLabel>
-                  <FormControl>
-                    <Input
-                      {...field}
-                      placeholder="Email adresinizi girin"
-                      type="email"
-                      disabled={isPending}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="name"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Name</FormLabel>
-                  <FormControl>
-                    <Input
-                      {...field}
-                      placeholder="İsminizi girin"
-                      type="text"
-                      disabled={isPending}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="password"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Email</FormLabel>
-                  <FormControl>
-                    <Input
-                      {...field}
-                      placeholder="********"
-                      type="password"
-                      disabled={isPending}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            <div className="flex gap-8">
+              <FormField
+                control={form.control}
+                name="student_number"
+                render={({ field }) => (
+                  <FormItem className="w-1/2">
+                    <FormLabel>Öğrenci Numarası</FormLabel>
+                    <FormControl>
+                      <Input
+                        {...field}
+                        placeholder="Öğrenci numaranızı girin"
+                        type="text"
+                        maxLength={12}
+                        disabled={isPending}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="email"
+                render={({ field }) => (
+                  <FormItem className="w-1/2">
+                    <FormLabel>Email</FormLabel>
+                    <FormControl>
+                      <Input
+                        {...field}
+                        placeholder="Email adresinizi girin"
+                        type="email"
+                        disabled={isPending}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+            <div className="flex gap-8">
+              <FormField
+                control={form.control}
+                name="first_name"
+                render={({ field }) => (
+                  <FormItem className="w-1/2">
+                    <FormLabel>Ad</FormLabel>
+                    <FormControl>
+                      <Input
+                        {...field}
+                        placeholder="Adınızı girin"
+                        type="text"
+                        disabled={isPending}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="last_name"
+                render={({ field }) => (
+                  <FormItem className="w-1/2">
+                    <FormLabel>Soyad</FormLabel>
+                    <FormControl>
+                      <Input
+                        {...field}
+                        placeholder="Soyadınızı girin"
+                        type="text"
+                        disabled={isPending}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+            <div className="flex gap-8">
+              <FormField
+                control={form.control}
+                name="password"
+                render={({ field }) => (
+                  <FormItem className="w-1/2">
+                    <FormLabel>Şifre</FormLabel>
+                    <FormControl>
+                      <Input
+                        {...field}
+                        placeholder="********"
+                        type="password"
+                        disabled={isPending}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="password2"
+                render={({ field }) => (
+                  <FormItem className="w-1/2">
+                    <FormLabel>Şifre Tekrarı</FormLabel>
+                    <FormControl>
+                      <Input
+                        {...field}
+                        placeholder="********"
+                        type="password"
+                        disabled={isPending}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
           </div>
-
-          <FormError message={error} />
-          <FormSuccess message={success} />
-
+          {errorMessage && <FormError message={errorMessage} />}
+          {successMessage && <FormSuccess message={successMessage} />}
           <Button
             type="submit"
-            className="w-full cursor-pointer"
+            color="primary"
+            className="bg-blue-500 text-white px-4 py-2 rounded cursor-pointer w-full"
             disabled={isPending}
           >
-            Create an account
+            Kayıt Ol
           </Button>
         </form>
       </Form>

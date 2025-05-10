@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     "rest_framework",
     "rest_framework_simplejwt",
     "rest_framework.authtoken",
+    "corsheaders",
 ]
 
 MIDDLEWARE = [
@@ -51,6 +52,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
 ]
 
 ROOT_URLCONF = 'unit_reservation_system.urls'
@@ -141,3 +143,6 @@ AUTHENTICATION_BACKENDS = [
     "api.authentication.StudentNumberBackend",
     "django.contrib.auth.backends.ModelBackend",  
 ]
+
+CORS_ALLOWED_ORIGINS = ["http://localhost:3000"]
+# CORS_ALLOW_ALL_ORIGINS = True

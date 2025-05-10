@@ -3,35 +3,30 @@
 import { Card, CardContent, CardFooter, CardHeader } from "../ui/card";
 import BackButton from "./back-button";
 import Header from "./header";
-import Social from "./social";
 
 interface CardWrapperProps {
   children: React.ReactNode;
-  headerLabel: string;
+  headerTitle: string;
   backButtonLabel: string;
   backButtonHref: string;
-  showSocial?: boolean;
+  type: string;
 }
 
 export default function CardWrapper({
   children,
-  headerLabel,
+  headerTitle,
   backButtonLabel,
   backButtonHref,
-  showSocial,
+  type,
 }: CardWrapperProps) {
   return (
-    <Card className="w-[400px] shadow-md">
+    <Card
+      className={`${type === "login" ? "w-[400px]" : "w-[600px]"} shadow-md`}
+    >
       <CardHeader>
-        <Header label={headerLabel} />
+        <Header title={headerTitle} />
       </CardHeader>
       <CardContent>{children}</CardContent>
-
-      {showSocial && (
-        <CardFooter>
-          <Social />
-        </CardFooter>
-      )}
 
       <CardFooter>
         <BackButton label={backButtonLabel} href={backButtonHref} />
