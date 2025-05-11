@@ -21,15 +21,33 @@ class UserManager(BaseUserManager):
 
 # Kullanıcı Modeli
 class User(AbstractBaseUser,PermissionsMixin):
-    student_number = models.CharField(max_length=12, unique=True)
-    email = models.EmailField(unique=True)
+    student_number = models.CharField(
+        max_length=12, 
+        unique=True,
+        error_messages={
+            'unique': 'Bu öğrenci numarası zaten kullanılıyor',
+        }
+    )
+    email = models.EmailField(
+        unique=True,
+        error_messages={
+            'unique': 'Bu e-posta adresi zaten kullanılıyor',
+        }
+    )
     first_name = models.CharField(max_length=100)
     last_name = models.CharField(max_length=100)
     CLASS_CHOICES = [
-    ("4", "4. Sınıf"),
-    ("5", "5. Sınıf")
+        ("4", "4. Sınıf"),
+        ("5", "5. Sınıf")
     ]
-    student_class = models.CharField(choices=CLASS_CHOICES,null=True, blank=True,max_length=1)
+    student_class = models.CharField(
+        choices=CLASS_CHOICES,
+        max_length=1,
+        error_messages={
+            'blank': 'Sınıf seçimi zorunludur',
+            'invalid_choice': 'Geçerli bir sınıf seçiniz (4. veya 5. sınıf)'
+        }
+    )
     is_staff = models.BooleanField(default=False)  # Admin mi?
     is_active = models.BooleanField(default=True)  # Aktif mi?
     is_superuser = models.BooleanField(default=False)
@@ -71,7 +89,7 @@ class Reservation(models.Model):
     time_slot = models.CharField(max_length=20, choices=TIME_CHOICES)
 
     class Meta:
-        unique_together = ("unit", "date" ,"time_slot")  # Aynı anda birden fazla kişi aynı yeri alamaz
+        pass  # unique_together ve constraints kaldırıldı
     
     def __str__(self):
         return f"{self.user.student_number} - {self.unit.number} - {self.date} - {self.time_slot}"

@@ -1,24 +1,23 @@
-import LoginButton from "@/components/auth/login-button";
+"use client";
 
-import { PiStudent } from "react-icons/pi";
-import { FaChalkboardTeacher } from "react-icons/fa";
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 
 export default function Home() {
+  const router = useRouter();
+
+  useEffect(() => {
+    const token = localStorage.getItem("access_token");
+    if (token) {
+      router.push("/units");
+    } else {
+      router.push("/login");
+    }
+  }, [router]);
+
   return (
-    <main className="flex h-10/12 flex-col items-center justify-center">
-      <div className="flex flex-col items-center justify-center gap-4">
-        <h1 className="text-2xl font-bold">
-          Ünit Rezervasyon Sistemine Hoşgeldiniz
-        </h1>
-        <LoginButton>
-          <PiStudent className="mr-2 h-5 w-5" />
-          Öğrenci Girişi
-        </LoginButton>
-        <LoginButton>
-          <FaChalkboardTeacher className="mr-2 h-5 w-5" />
-          Öğretmen Girişi
-        </LoginButton>
-      </div>
-    </main>
+    <div className="min-h-screen flex items-center justify-center">
+      <div className="text-xl">Yönlendiriliyor...</div>
+    </div>
   );
 }

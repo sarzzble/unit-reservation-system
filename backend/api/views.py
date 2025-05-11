@@ -2,10 +2,11 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status, permissions
 from datetime import timedelta, date
-from rest_framework_simplejwt.tokens import RefreshToken
 from .models import Unit, Reservation, ShiftList, SystemSetting
 from .serializers import LoginSerializer, LogoutSerializer, RegisterSerializer, UnitSerializer, ReservationSerializer, MyReservationSerializer, ShiftListSerializer, UserUpdateSerializer
 from rest_framework.permissions import IsAuthenticated
+from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework_simplejwt.token_blacklist.models import BlacklistedToken, OutstandingToken
 
 # Kayıt olmav
 class RegisterView(APIView):
@@ -14,7 +15,37 @@ class RegisterView(APIView):
         if serializer.is_valid():
             serializer.save()
             return Response({"success_message": "Kayıt başarılı"}, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Hata mesajlarını birleştir
+        error_messages = []
+        for field, errors in serializer.errors.items():
+            if isinstance(errors, list):
+                for error in errors:
+                    # Hata mesajlarını daha kullanıcı dostu hale getir
+                    if field == 'student_number':
+                        if "zaten kullanılmakta" in error:
+                            error_messages.append("Bu öğrenci numarası zaten kullanılıyor")
+                        else:
+                            error_messages.append(error)
+                    elif field == 'email':
+                        if "zaten kullanılmaktadır" in error:
+                            error_messages.append("Bu e-posta adresi zaten kullanılıyor")
+                        else:
+                            error_messages.append(error)
+                    elif field == 'password':
+                        if "eşleşmiyor" in error:
+                            error_messages.append("Şifreler eşleşmiyor")
+                        else:
+                            error_messages.append(error)
+                    else:
+                        error_messages.append(error)
+            else:
+                error_messages.append(errors)
+        
+        return Response({
+            "error": "Kayıt işlemi başarısız",
+            "details": error_messages
+        }, status=status.HTTP_400_BAD_REQUEST)
 
 # Giriş
 class LoginAPIView(APIView):
@@ -22,10 +53,12 @@ class LoginAPIView(APIView):
         serializer = LoginSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         user = serializer.validated_data["user"]
-        
-        # Token oluştur
+
+        # JWT token oluştur
         refresh = RefreshToken.for_user(user)
-        
+        access_token = str(refresh.access_token)
+        refresh_token = str(refresh)
+
         return Response({
             "user": {
                 "name": user.first_name,
@@ -34,10 +67,8 @@ class LoginAPIView(APIView):
                 "email": user.email,
                 "student_class": user.student_class
             },
-            "tokens": {
-                "access": str(refresh.access_token),
-                "refresh": str(refresh)
-            }
+            "access": access_token,
+            "refresh": refresh_token
         }, status=status.HTTP_200_OK)
 
 # Çıkış
@@ -45,13 +76,20 @@ class LogoutAPIView(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
+        serializer = LogoutSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        refresh_token = serializer.validated_data["refresh"]
+
+        # refresh token blacklist
         try:
-            refresh_token = request.data["refresh"]
             token = RefreshToken(refresh_token)
             token.blacklist()
-            return Response({"message": "Başarıyla çıkış yapıldı."}, status=status.HTTP_205_RESET_CONTENT)
+            return Response({
+                "message": "Çıkış başarılı. Token iptal edildi."
+            }, status=status.HTTP_205_RESET_CONTENT)
         except Exception as e:
-            return Response({"error": "Geçersiz token."}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"error": "Token iptal edilemedi."}, status=status.HTTP_400_BAD_REQUEST)
 
 class UserUpdateAPIView(APIView):
     permission_classes = [IsAuthenticated]

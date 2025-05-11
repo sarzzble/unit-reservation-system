@@ -10,22 +10,19 @@ class RegisterSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ["student_number", "email", "first_name", "last_name", "student_class", "password", "password2"]
-        extra_kwargs = {"password": {"write_only": True}}
+        extra_kwargs = {
+            "password": {"write_only": True},
+            "first_name": {"error_messages": {"blank": "Ad alanı boş bırakılamaz"}},
+            "last_name": {"error_messages": {"blank": "Soyad alanı boş bırakılamaz"}},
+            "student_class": {"error_messages": {"blank": "Sınıf seçimi zorunludur"}},
+            "email": {"error_messages": {"blank": "E-posta adresi zorunludur", "invalid": "Geçerli bir e-posta adresi giriniz"}},
+            "student_number": {"error_messages": {"blank": "Öğrenci numarası zorunludur"}}
+        }
 
     def validate(self, data):
         if data['password'] != data['password2']:
-            raise serializers.ValidationError("Şifreler eşleşmiyor")
+            raise serializers.ValidationError({"password2": "Şifreler eşleşmiyor"})
         return data
-    
-    def validate_student_number(self, value):
-        if User.objects.filter(student_number = value).exists():
-            raise serializers.ValidationError("Bu öğrenci numarası zaten kullanılmakta.")
-        return value
-    
-    def validate_email(self, value):
-        if User.objects.filter(email = value).exists(): 
-            raise serializers.ValidationError("Bu e posta zaten kullanılmaktadır.")
-        return value
 
     def create(self, validated_data):
         validated_data.pop("password2")  # password2'yi çıkar
@@ -130,7 +127,7 @@ class MyReservationSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Reservation
-        fields = ["unit", "date", "time_slot"]
+        fields = ["id", "unit", "date", "time_slot"]
 
 # Nöbetçi listesi
 class ShiftListSerializer(serializers.ModelSerializer):
