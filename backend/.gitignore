@@ -1,0 +1,3 @@
+# python cache dosyaları
+backend/__pycache__/
+backend/*.pyc
