@@ -2,6 +2,7 @@
 
 import { logout } from "@/lib/auth";
 import Link from "next/link";
+import Image from "next/image";
 
 export default function Navbar() {
   const handleLogout = () => {
@@ -16,9 +17,23 @@ export default function Navbar() {
     <nav className="bg-white shadow">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
-          <div className="flex items-center">
-            <Link href="/units" className="text-xl font-semibold text-gray-800">
-              Diş Ünitesi Rezervasyon
+          <div className="flex items-center space-x-3">
+            <Link
+              href="/units"
+              className="flex items-center space-x-3 hover:opacity-80 transition-opacity"
+            >
+              <div className="relative w-16 h-16">
+                <Image
+                  src="/images/unit-reservation-system-logo.png"
+                  alt="Unit Rezervasyon Sistemi Logo"
+                  fill
+                  className="object-contain"
+                  priority
+                />
+              </div>
+              <span className="text-xl font-semibold text-gray-800">
+                Ünit Rezervasyon Sistemi
+              </span>
             </Link>
           </div>
           <div className="flex items-center space-x-4">

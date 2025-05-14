@@ -106,8 +106,9 @@ class UnitListView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def get(self, request):
+        selected_date = request.query_params.get('selected_date')
         units = Unit.objects.all()
-        serializer = UnitSerializer(units, many=True)
+        serializer = UnitSerializer(units, many=True, context={'selected_date': selected_date})
         return Response(serializer.data)
 
 # Öğrenci kendi rezervasyonlarını görür
