@@ -1,16 +1,12 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-import { logout } from "@/lib/api";
+import { logout } from "@/lib/auth";
 import Link from "next/link";
 
 export default function Navbar() {
-  const router = useRouter();
-
-  const handleLogout = async () => {
+  const handleLogout = () => {
     try {
-      await logout();
-      router.push("/login");
+      logout();
     } catch (error) {
       console.error("Logout error:", error);
     }

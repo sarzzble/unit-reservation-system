@@ -1,4 +1,5 @@
 import axios from "axios";
+import { getCookie, setCookie, deleteCookie } from "./auth";
 
 const API_URL = "http://localhost:8000/api";
 
@@ -12,7 +13,7 @@ const api = axios.create({
 // Request interceptor - her istekte token'ı ekle
 api.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem("access_token");
+    const token = getCookie("access_token");
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -33,19 +34,25 @@ api.interceptors.response.use(
       originalRequest._retry = true;
 
       try {
-        const refreshToken = localStorage.getItem("refresh_token");
+        const refreshToken = getCookie("refresh_token");
+        if (!refreshToken) {
+          throw new Error("No refresh token found");
+        }
+
         const response = await axios.post(`${API_URL}/token/refresh/`, {
           refresh: refreshToken,
         });
 
         const { access } = response.data;
-        localStorage.setItem("access_token", access);
+        setCookie("access_token", access, 1); // 1 gün
 
         originalRequest.headers.Authorization = `Bearer ${access}`;
         return api(originalRequest);
       } catch (refreshError) {
-        localStorage.removeItem("access_token");
-        localStorage.removeItem("refresh_token");
+        // Token yenileme başarısız olduğunda tüm token'ları temizle
+        deleteCookie("access_token");
+        deleteCookie("refresh_token");
+        localStorage.removeItem("user");
         window.location.href = "/login";
         return Promise.reject(refreshError);
       }
@@ -68,12 +75,12 @@ export const login = async (studentNumber: string, password: string) => {
 };
 
 export const logout = async () => {
-  const refreshToken = localStorage.getItem("refresh_token");
+  const refreshToken = getCookie("refresh_token");
 
   if (!refreshToken) {
     console.warn("No refresh token found during logout");
-    localStorage.removeItem("access_token");
-    localStorage.removeItem("refresh_token");
+    deleteCookie("access_token");
+    deleteCookie("refresh_token");
     localStorage.removeItem("user");
     return;
   }
@@ -84,11 +91,11 @@ export const logout = async () => {
     });
   } catch (error) {
     console.error("Logout error:", error);
-    // Token iptal edilemese bile local storage'ı temizle
+    // Token iptal edilemese bile cookie'leri temizle
   } finally {
-    // Her durumda local storage'ı temizle
-    localStorage.removeItem("access_token");
-    localStorage.removeItem("refresh_token");
+    // Her durumda cookie'leri temizle
+    deleteCookie("access_token");
+    deleteCookie("refresh_token");
     localStorage.removeItem("user");
   }
 };

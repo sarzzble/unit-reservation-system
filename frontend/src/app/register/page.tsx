@@ -9,9 +9,17 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { RegisterSchema } from "@/schemas";
 import {
+  FaUserGraduate,
+  FaLock,
+  FaTooth,
+  FaEnvelope,
+  FaUser,
+  FaIdCard,
+} from "react-icons/fa";
+import Image from "next/image";
+import {
   Card,
   CardContent,
-  CardDescription,
   CardFooter,
   CardHeader,
   CardTitle,
@@ -91,14 +99,25 @@ export default function RegisterPage() {
 
   if (isSuccess) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-50">
-        <Card className="w-[400px] shadow-lg">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 to-blue-50 py-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
+        {/* Background Pattern with Teeth */}
+        <div className="absolute inset-0 z-0 opacity-10">
+          <div className="absolute inset-0 grid grid-cols-12 gap-4 p-4">
+            {Array.from({ length: 144 }).map((_, i) => (
+              <div key={i} className="flex items-center justify-center">
+                <FaTooth className="w-6 h-6 text-gray-600" />
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <Card className="w-[400px] shadow-xl border-0 bg-white/90 backdrop-blur-sm relative z-10">
           <CardContent className="pt-6">
             <div className="flex flex-col items-center space-y-4 text-center">
               <div className="rounded-full bg-green-100 p-3">
                 <CheckCircle2 className="h-8 w-8 text-green-600" />
               </div>
-              <h2 className="text-2xl font-semibold text-gray-900">
+              <h2 className="text-2xl font-semibold text-gray-800">
                 Kayıt Başarılı!
               </h2>
               <p className="text-gray-600">
@@ -116,15 +135,37 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-50">
-      <Card className="w-[400px] shadow-lg">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 to-blue-50 py-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
+      {/* Background Pattern with Teeth */}
+      <div className="absolute inset-0 z-0 opacity-10">
+        <div className="absolute inset-0 grid grid-cols-12 gap-4 p-4">
+          {Array.from({ length: 144 }).map((_, i) => (
+            <div key={i} className="flex items-center justify-center">
+              <FaTooth className="w-6 h-6 text-gray-600" />
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <Card className="w-[400px] shadow-xl border-0 bg-white/90 backdrop-blur-sm relative z-10">
         <CardHeader>
-          <CardTitle className="text-2xl font-bold text-center">
-            Kayıt Ol
-          </CardTitle>
-          <CardDescription className="text-center">
-            Diş üniti rezervasyon sistemi için hesap oluşturun
-          </CardDescription>
+          {/* Logo */}
+          <div className="flex justify-center">
+            <div className="relative w-24 h-24">
+              <Image
+                src="/images/unit-reservation-system-logo.png"
+                alt="Ünit Rezervasyon Sistemi Logo"
+                fill
+                className="object-contain"
+                priority
+              />
+            </div>
+          </div>
+          <div className="space-y-1">
+            <CardTitle className="text-2xl text-center font-bold text-gray-800">
+              Diş Ünitesi Rezervasyon Sistemi Kayıt
+            </CardTitle>
+          </div>
         </CardHeader>
         <CardContent>
           <Form {...form}>
@@ -134,11 +175,15 @@ export default function RegisterPage() {
                 name="student_number"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Öğrenci Numarası</FormLabel>
+                    <FormLabel className="flex items-center gap-2 text-gray-700">
+                      <FaUserGraduate className="w-4 h-4" />
+                      Öğrenci Numarası
+                    </FormLabel>
                     <FormControl>
                       <Input
                         placeholder="Öğrenci numaranızı giriniz"
                         {...field}
+                        className="focus:ring-2 focus:ring-green-500"
                       />
                     </FormControl>
                     <FormMessage />
@@ -151,12 +196,16 @@ export default function RegisterPage() {
                 name="email"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>E-posta</FormLabel>
+                    <FormLabel className="flex items-center gap-2 text-gray-700">
+                      <FaEnvelope className="w-4 h-4" />
+                      E-posta
+                    </FormLabel>
                     <FormControl>
                       <Input
                         type="email"
                         placeholder="E-posta adresinizi giriniz"
                         {...field}
+                        className="focus:ring-2 focus:ring-green-500"
                       />
                     </FormControl>
                     <FormMessage />
@@ -170,9 +219,16 @@ export default function RegisterPage() {
                   name="first_name"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Ad</FormLabel>
+                      <FormLabel className="flex items-center gap-2 text-gray-700">
+                        <FaUser className="w-4 h-4" />
+                        Ad
+                      </FormLabel>
                       <FormControl>
-                        <Input placeholder="Adınız" {...field} />
+                        <Input
+                          placeholder="Adınız"
+                          {...field}
+                          className="focus:ring-2 focus:ring-green-500"
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -184,9 +240,16 @@ export default function RegisterPage() {
                   name="last_name"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Soyad</FormLabel>
+                      <FormLabel className="flex items-center gap-2 text-gray-700">
+                        <FaUser className="w-4 h-4" />
+                        Soyad
+                      </FormLabel>
                       <FormControl>
-                        <Input placeholder="Soyadınız" {...field} />
+                        <Input
+                          placeholder="Soyadınız"
+                          {...field}
+                          className="focus:ring-2 focus:ring-green-500"
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -199,13 +262,16 @@ export default function RegisterPage() {
                 name="student_class"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Sınıf</FormLabel>
+                    <FormLabel className="flex items-center gap-2 text-gray-700">
+                      <FaIdCard className="w-4 h-4" />
+                      Sınıf
+                    </FormLabel>
                     <Select
                       onValueChange={field.onChange}
                       defaultValue={field.value}
                     >
                       <FormControl>
-                        <SelectTrigger className="w-full">
+                        <SelectTrigger className="w-full focus:ring-2 focus:ring-green-500">
                           <SelectValue placeholder="Sınıf seçiniz" />
                         </SelectTrigger>
                       </FormControl>
@@ -224,12 +290,16 @@ export default function RegisterPage() {
                 name="password"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Şifre</FormLabel>
+                    <FormLabel className="flex items-center gap-2 text-gray-700">
+                      <FaLock className="w-4 h-4" />
+                      Şifre
+                    </FormLabel>
                     <FormControl>
                       <Input
                         type="password"
                         placeholder="Şifrenizi giriniz"
                         {...field}
+                        className="focus:ring-2 focus:ring-green-500"
                       />
                     </FormControl>
                     <FormMessage />
@@ -242,12 +312,16 @@ export default function RegisterPage() {
                 name="password2"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Şifre Tekrar</FormLabel>
+                    <FormLabel className="flex items-center gap-2 text-gray-700">
+                      <FaLock className="w-4 h-4" />
+                      Şifre Tekrar
+                    </FormLabel>
                     <FormControl>
                       <Input
                         type="password"
                         placeholder="Şifrenizi tekrar giriniz"
                         {...field}
+                        className="focus:ring-2 focus:ring-green-500"
                       />
                     </FormControl>
                     <FormMessage />
@@ -256,15 +330,18 @@ export default function RegisterPage() {
               />
 
               {error && (
-                <Alert variant="destructive">
-                  <AlertDescription className="whitespace-pre-line">
+                <Alert
+                  variant="destructive"
+                  className="bg-red-50 border-red-200"
+                >
+                  <AlertDescription className="text-red-600 whitespace-pre-line">
                     {error}
                   </AlertDescription>
                 </Alert>
               )}
               <Button
                 type="submit"
-                className="w-full cursor-pointer"
+                className="w-full bg-green-600 hover:bg-green-700 text-white transition-colors duration-200 cursor-pointer"
                 disabled={loading}
               >
                 {loading ? "Kayıt yapılıyor..." : "Kayıt Ol"}
@@ -272,12 +349,12 @@ export default function RegisterPage() {
             </form>
           </Form>
         </CardContent>
-        <CardFooter className="flex flex-col space-y-4">
+        <CardFooter className="flex flex-col space-y-4 pb-6">
           <div className="text-sm text-center text-gray-600">
             Zaten hesabınız var mı?{" "}
             <Link
               href="/login"
-              className="font-medium text-indigo-600 hover:text-indigo-500"
+              className="font-medium text-green-600 hover:text-green-500 transition-colors duration-200"
             >
               Giriş yapın
             </Link>

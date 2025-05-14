@@ -14,6 +14,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { getCookie } from "@/lib/auth";
 
 interface Reservation {
   id: number;
@@ -53,7 +54,7 @@ export default function MyReservationsPage() {
   };
 
   useEffect(() => {
-    const token = localStorage.getItem("access_token");
+    const token = getCookie("access_token");
     if (!token) {
       router.push("/login");
       return;
