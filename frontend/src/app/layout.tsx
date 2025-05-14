@@ -13,8 +13,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Unit Rezervasyon Sistemi",
-  description: "Unit Rezervasyon Sistemi giris ekrani",
+  title: "Ünit Rezervasyon Sistemi",
+  description: "Diş Hekimliği Fakültesi Ünit Rezervasyon Sistemi",
 };
 
 export default function RootLayout({
