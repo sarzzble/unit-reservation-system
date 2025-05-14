@@ -147,7 +147,7 @@ export default function MyReservationsPage() {
                           <div className="flex items-center">
                             <div className="ml-3">
                               <p className="text-sm font-medium text-gray-900">
-                                Ünite {reservation.unit.number}
+                                Ünit {reservation.unit.number}
                               </p>
                               <p className="text-sm text-gray-500">
                                 {new Date(reservation.date).toLocaleDateString(
@@ -186,7 +186,7 @@ export default function MyReservationsPage() {
                   ) : (
                     selectedReservation && (
                       <>
-                        Ünite {selectedReservation.unit.number} için{" "}
+                        Ünit {selectedReservation.unit.number} için{" "}
                         {new Date(selectedReservation.date).toLocaleDateString(
                           "tr-TR"
                         )}{" "}

@@ -15,7 +15,7 @@ class Migration(migrations.Migration):
             constraint=models.UniqueConstraint(
                 fields=("unit", "date", "time_slot"),
                 name="unique_reservation",
-                violation_error_message="Bu ünite seçtiğiniz tarih ve saat için dolu.",
+                violation_error_message="Bu ünit seçtiğiniz tarih ve saat için dolu.",
             ),
         ),
     ]

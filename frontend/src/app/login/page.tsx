@@ -106,7 +106,7 @@ function LoginForm() {
           </div>
           <div className="space-y-1">
             <CardTitle className="text-2xl text-center font-bold text-gray-800">
-              Diş Ünitesi Rezervasyon Sistemi Öğrenci Girişi
+              Diş Üniti Rezervasyon Sistemi Öğrenci Girişi
             </CardTitle>
           </div>
         </CardHeader>

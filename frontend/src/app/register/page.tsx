@@ -163,7 +163,7 @@ export default function RegisterPage() {
           </div>
           <div className="space-y-1">
             <CardTitle className="text-2xl text-center font-bold text-gray-800">
-              Diş Ünitesi Rezervasyon Sistemi Kayıt
+              Diş Üniti Rezervasyon Sistemi Kayıt
             </CardTitle>
           </div>
         </CardHeader>

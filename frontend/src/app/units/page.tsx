@@ -64,10 +64,10 @@ export default function UnitsPage() {
     } catch (err) {
       if (err instanceof AxiosError) {
         setError(
-          err.response?.data?.error || "Üniteler yüklenirken bir hata oluştu"
+          err.response?.data?.error || "Ünitler yüklenirken bir hata oluştu"
         );
       } else {
-        setError("Üniteler yüklenirken bir hata oluştu");
+        setError("Ünitler yüklenirken bir hata oluştu");
       }
     } finally {
       setLoading(false);
@@ -125,10 +125,10 @@ export default function UnitsPage() {
   return (
     <>
       <Navbar />
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50 py-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
+      <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 py-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
         <div className="max-w-7xl mx-auto relative z-10">
-          <div className="text-center">
-            <h2 className="text-4xl font-extrabold sm:text-5xl bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-blue-600">
+          <div className="text-center mb-8">
+            <h2 className="text-4xl font-extrabold sm:text-5xl text-green-700">
               Diş Ünitleri
             </h2>
             <p className="mt-3 text-xl text-gray-600">
@@ -146,7 +146,7 @@ export default function UnitsPage() {
                   <Button
                     variant={"outline"}
                     className={cn(
-                      "w-[240px] justify-start text-left font-normal cursor-pointer bg-white/80 backdrop-blur-sm hover:bg-white/90 transition-colors",
+                      "w-[240px] justify-start text-left font-normal cursor-pointer bg-white/90 backdrop-blur-sm hover:bg-white transition-colors shadow-lg",
                       !date && "text-muted-foreground"
                     )}
                   >
@@ -158,23 +158,34 @@ export default function UnitsPage() {
                     )}
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
+                <PopoverContent
+                  className="w-auto p-0 bg-white/95 backdrop-blur-sm shadow-xl border-0"
+                  align="start"
+                >
                   <Calendar
                     mode="single"
                     selected={date}
                     onSelect={setDate}
-                    disabled={(date) =>
-                      date < new Date(new Date().setHours(0, 0, 0, 0))
-                    }
+                    disabled={(date) => {
+                      const today = new Date();
+                      today.setHours(0, 0, 0, 0);
+
+                      const isPast = date < today;
+                      const isWeekend =
+                        date.getDay() === 0 || date.getDay() === 6; // 0: Pazar, 6: Cumartesi
+
+                      return isPast || isWeekend;
+                    }}
+                    locale={tr}
                     initialFocus
-                    className="rounded-md border shadow-lg"
+                    className="rounded-md"
                   />
                 </PopoverContent>
               </Popover>
               <Button
                 type="submit"
                 disabled={isSearching || !date}
-                className="bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 text-white shadow-lg hover:shadow-xl transition-all duration-200 cursor-pointer"
+                className="bg-green-600 hover:bg-green-700 text-white shadow-lg hover:shadow-xl transition-all duration-200 cursor-pointer"
               >
                 {isSearching ? "Aranıyor..." : "Ara"}
               </Button>
@@ -189,12 +200,12 @@ export default function UnitsPage() {
                 {units.map((unit) => (
                   <div
                     key={unit.id}
-                    className={`relative bg-white/80 backdrop-blur-sm overflow-hidden rounded-xl shadow-lg`}
+                    className="relative bg-white/90 rounded-xl shadow-sm"
                   >
                     <div className="px-6 py-6">
                       <div className="flex items-center gap-3 mb-4">
-                        <FaTooth className="w-6 h-6 text-indigo-600" />
-                        <h3 className="text-2xl font-bold text-gray-900">
+                        <FaTooth className="w-6 h-6 text-green-600" />
+                        <h3 className="text-2xl font-bold text-gray-800">
                           Ünit {unit.number}
                         </h3>
                       </div>
@@ -213,7 +224,7 @@ export default function UnitsPage() {
                               className={`p-2 rounded-lg text-sm font-medium transition-all duration-200 ${
                                 isReserved
                                   ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                                  : "bg-indigo-50 text-indigo-700 hover:bg-indigo-100 hover:shadow-md cursor-pointer"
+                                  : "bg-green-50 text-green-700 hover:bg-green-100 hover:shadow-md cursor-pointer"
                               }`}
                             >
                               {timeSlot}
@@ -233,9 +244,9 @@ export default function UnitsPage() {
           open={showConfirmDialog || !!error}
           onOpenChange={handleCloseDialog}
         >
-          <DialogContent className="sm:max-w-md bg-white/95 backdrop-blur-sm">
+          <DialogContent className="sm:max-w-md bg-white/95 backdrop-blur-sm border-0 shadow-xl">
             <DialogHeader>
-              <DialogTitle className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-blue-600">
+              <DialogTitle className="text-2xl font-bold text-gray-800">
                 {error ? "Hata" : "Rezervasyon Onayı"}
               </DialogTitle>
               <DialogDescription className="text-gray-600">
@@ -246,7 +257,7 @@ export default function UnitsPage() {
                   date &&
                   selectedTimeSlot && (
                     <>
-                      Ünite {units.find((u) => u.id === selectedUnit)?.number}{" "}
+                      Ünit {units.find((u) => u.id === selectedUnit)?.number}{" "}
                       için {format(date, "PPP", { locale: tr })} tarihinde{" "}
                       {selectedTimeSlot} saatlerinde rezervasyon yapmak
                       istediğinizden emin misiniz?
@@ -259,7 +270,7 @@ export default function UnitsPage() {
               {error ? (
                 <Button
                   onClick={handleCloseDialog}
-                  className="bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white shadow-lg hover:shadow-xl transition-all duration-200"
+                  className="bg-red-600 hover:bg-red-700 text-white shadow-lg hover:shadow-xl transition-all duration-200 cursor-pointer"
                 >
                   Tamam
                 </Button>
@@ -268,13 +279,13 @@ export default function UnitsPage() {
                   <Button
                     variant="outline"
                     onClick={handleCloseDialog}
-                    className="hover:bg-gray-100 transition-colors"
+                    className="hover:bg-gray-100 transition-colors cursor-pointer"
                   >
                     İptal
                   </Button>
                   <Button
                     onClick={handleConfirmReservation}
-                    className="bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 text-white shadow-lg hover:shadow-xl transition-all duration-200"
+                    className="bg-green-600 hover:bg-green-700 text-white shadow-lg hover:shadow-xl transition-all duration-200 cursor-pointer"
                   >
                     Onayla
                   </Button>

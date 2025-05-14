@@ -14,7 +14,7 @@ export default function Navbar() {
   };
 
   return (
-    <nav className="bg-white shadow">
+    <nav className="bg-white border-b-2">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
           <div className="flex items-center space-x-3">
@@ -39,7 +39,7 @@ export default function Navbar() {
           <div className="flex items-center space-x-4">
             <Link
               href="/my-reservations"
-              className="text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium"
+              className="text-gray-800 hover:opacity-80 transition-opacity px-3 py-2 rounded-md text-sm font-medium"
             >
               Rezervasyonlarım
             </Link>
