@@ -30,6 +30,7 @@ interface Unit {
   id: number;
   number: string;
   reserved_time_slots: string[];
+  available_time_slots: string[];
 }
 
 export default function UnitsPage() {
@@ -42,13 +43,6 @@ export default function UnitsPage() {
   const [isSearching, setIsSearching] = useState(false);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [selectedTimeSlot, setSelectedTimeSlot] = useState<string | null>(null);
-
-  const timeSlots = [
-    "09:00-10:30",
-    "10:30-12:00",
-    "13:30-15:30",
-    "15:30-17:00",
-  ];
 
   const isTimeSlotPassed = (timeSlot: string) => {
     if (!date) return false;
@@ -231,7 +225,7 @@ export default function UnitsPage() {
                       </div>
 
                       <div className="grid grid-cols-2 gap-2">
-                        {timeSlots.map((timeSlot) => {
+                        {unit.available_time_slots.map((timeSlot) => {
                           const isReserved =
                             unit.reserved_time_slots.includes(timeSlot);
                           const isPassed = isTimeSlotPassed(timeSlot);

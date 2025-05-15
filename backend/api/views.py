@@ -108,7 +108,20 @@ class UnitListView(APIView):
     def get(self, request):
         selected_date = request.query_params.get('selected_date')
         units = Unit.objects.all()
-        serializer = UnitSerializer(units, many=True, context={'selected_date': selected_date})
+        
+        # Kullanıcının sınıfına göre zaman dilimlerini filtrele
+        user_class = request.user.student_class
+        time_slots = []
+        
+        if user_class == "4":
+            time_slots = ["09:00-10:30", "10:30-12:00"]
+        elif user_class == "5":
+            time_slots = ["13:30-15:30", "15:30-17:00"]
+        
+        serializer = UnitSerializer(units, many=True, context={
+            'selected_date': selected_date,
+            'available_time_slots': time_slots
+        })
         return Response(serializer.data)
 
 # Öğrenci kendi rezervasyonlarını görür

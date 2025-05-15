@@ -76,23 +76,29 @@ class UserUpdateSerializer(serializers.ModelSerializer):
 # Üniti dolu/boş
 class UnitSerializer(serializers.ModelSerializer):
     reserved_time_slots = serializers.SerializerMethodField()
+    available_time_slots = serializers.SerializerMethodField()
 
     class Meta:
         model = Unit
-        fields = ["id", "number", "reserved_time_slots"]
+        fields = ["id", "number", "reserved_time_slots", "available_time_slots"]
 
     def get_reserved_time_slots(self, obj):
         selected_date = self.context.get("selected_date")
+        available_time_slots = self.context.get("available_time_slots", [])
         
-        if selected_date:
+        if selected_date and available_time_slots:
             # Get all reservations for this unit on the selected date
             reservations = Reservation.objects.filter(
                 unit=obj,
-                date=selected_date
+                date=selected_date,
+                time_slot__in=available_time_slots  # Sadece kullanıcının sınıfına uygun zaman dilimlerini kontrol et
             )
             # Return list of reserved time slots
             return [res.time_slot for res in reservations]
         return []
+
+    def get_available_time_slots(self, obj):
+        return self.context.get("available_time_slots", [])
     
 # Rezervasyon işlemi 
 class ReservationSerializer(serializers.ModelSerializer):
