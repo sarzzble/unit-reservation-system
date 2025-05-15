@@ -25,13 +25,7 @@ import { format } from "date-fns";
 import { tr } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { FaTooth } from "react-icons/fa";
-
-interface Unit {
-  id: number;
-  number: string;
-  reserved_time_slots: string[];
-  available_time_slots: string[];
-}
+import { Unit } from "@/interfaces";
 
 export default function UnitsPage() {
   const router = useRouter();
@@ -239,7 +233,7 @@ export default function UnitsPage() {
                               className={`p-2 rounded-lg text-sm font-medium transition-all duration-200 ${
                                 isReserved || isPassed
                                   ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                                  : "bg-green-50 text-green-700 hover:bg-green-100 hover:shadow-md cursor-pointer"
+                                  : "bg-green-50 text-green-700 hover:bg-green-100 cursor-pointer"
                               }`}
                             >
                               {timeSlot}
@@ -285,7 +279,7 @@ export default function UnitsPage() {
               {error ? (
                 <Button
                   onClick={handleCloseDialog}
-                  className="bg-red-600 hover:bg-red-700 text-white shadow-lg hover:shadow-xl transition-all duration-200 cursor-pointer"
+                  className="bg-red-600 hover:bg-red-700 text-white cursor-pointer"
                 >
                   Tamam
                 </Button>
@@ -294,13 +288,13 @@ export default function UnitsPage() {
                   <Button
                     variant="outline"
                     onClick={handleCloseDialog}
-                    className="hover:bg-gray-100 transition-colors cursor-pointer"
+                    className="cursor-pointer"
                   >
                     İptal
                   </Button>
                   <Button
                     onClick={handleConfirmReservation}
-                    className="bg-green-600 hover:bg-green-700 text-white shadow-lg hover:shadow-xl transition-all duration-200 cursor-pointer"
+                    className="bg-green-600 hover:bg-green-700 text-white cursor-pointer"
                   >
                     Onayla
                   </Button>

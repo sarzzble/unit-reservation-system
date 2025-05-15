@@ -159,4 +159,35 @@ export const cancelReservation = async (reservationId: number) => {
   }
 };
 
+export const updateUser = async (userData: { email: string }) => {
+  try {
+    const response = await api.put("/update/", userData);
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const getUserInfo = async () => {
+  try {
+    const response = await api.get("/user/");
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const changePassword = async (passwordData: {
+  current_password: string;
+  new_password: string;
+  new_password2: string;
+}) => {
+  try {
+    const response = await api.post("/change-password/", passwordData);
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
 export default api;

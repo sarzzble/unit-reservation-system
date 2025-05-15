@@ -70,8 +70,10 @@ class LogoutSerializer(serializers.Serializer):
 class UserUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ["first_name", "last_name", "email", "student_class"]
-             
+        fields = ["email"]
+        extra_kwargs = {
+            "email": {"error_messages": {"blank": "E-posta adresi zorunludur", "invalid": "Geçerli bir e-posta adresi giriniz"}}
+        }
 
 # Üniti dolu/boş
 class UnitSerializer(serializers.ModelSerializer):
@@ -141,3 +143,20 @@ class ShiftListSerializer(serializers.ModelSerializer):
     class Meta:
         model = ShiftList
         fields = "__all__"
+
+# Şifre değiştirme
+class PasswordChangeSerializer(serializers.Serializer):
+    current_password = serializers.CharField(write_only=True)
+    new_password = serializers.CharField(write_only=True)
+    new_password2 = serializers.CharField(write_only=True)
+
+    def validate(self, data):
+        if data['new_password'] != data['new_password2']:
+            raise serializers.ValidationError({"new_password2": "Yeni şifreler eşleşmiyor"})
+        return data
+
+    def validate_current_password(self, value):
+        user = self.context['request'].user
+        if not user.check_password(value):
+            raise serializers.ValidationError("Mevcut şifre yanlış")
+        return value

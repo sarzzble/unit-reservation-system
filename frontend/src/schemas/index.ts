@@ -44,3 +44,18 @@ export const RegisterSchema = z
     message: "Şifreler eşleşmiyor",
     path: ["password2"],
   });
+
+export const EmailSchema = z.object({
+  email: z.string().email("Geçerli bir e-posta adresi giriniz"),
+});
+
+export const PasswordSchema = z
+  .object({
+    current_password: z.string().min(1, "Mevcut şifre zorunludur"),
+    new_password: z.string().min(6, "Şifre en az 6 karakter olmalıdır"),
+    new_password2: z.string().min(1, "Şifre tekrarı zorunludur"),
+  })
+  .refine((data) => data.new_password === data.new_password2, {
+    message: "Şifreler eşleşmiyor",
+    path: ["new_password2"],
+  });

@@ -16,15 +16,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { getCookie } from "@/lib/auth";
 import { FaTooth } from "react-icons/fa";
-
-interface Reservation {
-  id: number;
-  unit: {
-    number: string;
-  };
-  date: string;
-  time_slot: string;
-}
+import { Reservation } from "@/interfaces";
 
 export default function MyReservationsPage() {
   const router = useRouter();
@@ -100,8 +92,10 @@ export default function MyReservationsPage() {
     return (
       <>
         <Navbar />
-        <div className="min-h-screen flex items-center justify-center">
-          <div className="text-xl">Yükleniyor...</div>
+        <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 py-12 px-4 sm:px-6 lg:px-8">
+          <div className="max-w-3xl mx-auto">
+            <div className="text-center text-gray-600">Yükleniyor...</div>
+          </div>
         </div>
       </>
     );
@@ -195,7 +189,7 @@ export default function MyReservationsPage() {
               {modalError ? (
                 <Button
                   onClick={handleCloseDialog}
-                  className="bg-red-600 hover:bg-red-700 text-white shadow-lg transition-all duration-200 cursor-pointer"
+                  className="bg-red-600 hover:bg-red-700 text-white cursor-pointer"
                 >
                   Tamam
                 </Button>
@@ -204,13 +198,13 @@ export default function MyReservationsPage() {
                   <Button
                     variant="outline"
                     onClick={handleCloseDialog}
-                    className="hover:bg-gray-100 transition-colors cursor-pointer"
+                    className="hover:bg-gray-100 cursor-pointer"
                   >
                     Vazgeç
                   </Button>
                   <Button
                     onClick={handleConfirmCancel}
-                    className="bg-red-600 hover:bg-red-700 text-white shadow-lg transition-all duration-200 cursor-pointer"
+                    className="bg-red-600 hover:bg-red-700 text-white cursor-pointer"
                   >
                     İptal Et
                   </Button>

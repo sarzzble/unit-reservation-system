@@ -78,6 +78,12 @@ export default function Navbar() {
             >
               Rezervasyonlarım
             </Link>
+            <Link
+              href="/profile"
+              className="text-gray-800 hover:opacity-80 transition-opacity px-3 py-2 rounded-md text-sm font-medium"
+            >
+              Profilim
+            </Link>
             <button
               onClick={handleLogout}
               className="ml-2 px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 cursor-pointer"
