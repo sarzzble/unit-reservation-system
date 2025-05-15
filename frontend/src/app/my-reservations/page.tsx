@@ -134,7 +134,7 @@ export default function MyReservationsPage() {
           </div>
 
           {reservations.length === 0 ? (
-            <div className="text-center text-gray-600 bg-white/80 backdrop-blur-sm p-8 rounded-lg shadow-lg">
+            <div className="text-center text-gray-600 max-md:text-sm">
               Henüz rezervasyonunuz bulunmuyor.
             </div>
           ) : (

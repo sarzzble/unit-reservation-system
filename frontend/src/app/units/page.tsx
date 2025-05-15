@@ -50,6 +50,26 @@ export default function UnitsPage() {
     "15:30-17:00",
   ];
 
+  const isTimeSlotPassed = (timeSlot: string) => {
+    if (!date) return false;
+
+    const today = new Date();
+    const selectedDate = new Date(date);
+
+    // If the selected date is not today, return false
+    if (selectedDate.toDateString() !== today.toDateString()) {
+      return false;
+    }
+
+    const [startTime] = timeSlot.split("-");
+    const [hours, minutes] = startTime.split(":").map(Number);
+
+    const slotTime = new Date();
+    slotTime.setHours(hours, minutes, 0, 0);
+
+    return today > slotTime;
+  };
+
   const fetchUnits = async () => {
     if (!date) return;
 
@@ -146,7 +166,7 @@ export default function UnitsPage() {
                   <Button
                     variant={"outline"}
                     className={cn(
-                      "w-[240px] justify-start text-left font-normal cursor-pointer bg-white/90 backdrop-blur-sm hover:bg-white transition-colors shadow-lg",
+                      "w-[240px] justify-start text-left font-normal cursor-pointer bg-white/90 backdrop-blur-sm hover:bg-white transition-colors shadow-sm",
                       !date && "text-muted-foreground"
                     )}
                   >
@@ -185,7 +205,7 @@ export default function UnitsPage() {
               <Button
                 type="submit"
                 disabled={isSearching || !date}
-                className="bg-green-600 hover:bg-green-700 text-white shadow-lg hover:shadow-xl transition-all duration-200 cursor-pointer"
+                className="bg-green-600 hover:bg-green-700 text-white shadow-sm cursor-pointer"
               >
                 {isSearching ? "Aranıyor..." : "Ara"}
               </Button>
@@ -214,15 +234,16 @@ export default function UnitsPage() {
                         {timeSlots.map((timeSlot) => {
                           const isReserved =
                             unit.reserved_time_slots.includes(timeSlot);
+                          const isPassed = isTimeSlotPassed(timeSlot);
                           return (
                             <button
                               key={timeSlot}
                               onClick={() =>
                                 handleTimeSlotClick(unit.id, timeSlot)
                               }
-                              disabled={isReserved}
+                              disabled={isReserved || isPassed}
                               className={`p-2 rounded-lg text-sm font-medium transition-all duration-200 ${
-                                isReserved
+                                isReserved || isPassed
                                   ? "bg-gray-100 text-gray-400 cursor-not-allowed"
                                   : "bg-green-50 text-green-700 hover:bg-green-100 hover:shadow-md cursor-pointer"
                               }`}
