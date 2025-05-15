@@ -128,10 +128,10 @@ export default function UnitsPage() {
       <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 py-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
         <div className="max-w-7xl mx-auto relative z-10">
           <div className="text-center mb-8">
-            <h2 className="text-4xl font-extrabold sm:text-5xl text-green-700">
+            <h2 className="text-3xl font-extrabold sm:text-5xl text-green-700">
               Diş Ünitleri
             </h2>
-            <p className="mt-3 text-xl text-gray-600">
+            <p className="mt-3 text-xl max-md:text-sm text-gray-600">
               Rezervasyon yapmak istediğiniz üniti seçin
             </p>
           </div>
@@ -205,7 +205,7 @@ export default function UnitsPage() {
                     <div className="px-6 py-6">
                       <div className="flex items-center gap-3 mb-4">
                         <FaTooth className="w-6 h-6 text-green-600" />
-                        <h3 className="text-2xl font-bold text-gray-800">
+                        <h3 className="text-2xl max-md:text-lg font-bold text-gray-800">
                           Ünit {unit.number}
                         </h3>
                       </div>

@@ -129,7 +129,7 @@ function LoginForm() {
                         type="text"
                         disabled={loading}
                         autoComplete="off"
-                        className="focus:ring-2 focus:ring-green-500"
+                        className="focus:ring-2 focus:ring-green-500 max-md:text-sm"
                       />
                     </FormControl>
                     <FormMessage />
@@ -152,7 +152,7 @@ function LoginForm() {
                         type="password"
                         disabled={loading}
                         autoComplete="current-password"
-                        className="focus:ring-2 focus:ring-green-500"
+                        className="focus:ring-2 focus:ring-green-500 max-md:text-sm"
                       />
                     </FormControl>
                     <FormMessage />

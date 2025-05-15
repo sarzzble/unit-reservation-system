@@ -183,7 +183,7 @@ export default function RegisterPage() {
                       <Input
                         placeholder="Öğrenci numaranızı giriniz"
                         {...field}
-                        className="focus:ring-2 focus:ring-green-500"
+                        className="focus:ring-2 focus:ring-green-500 max-md:text-sm"
                       />
                     </FormControl>
                     <FormMessage />
@@ -205,7 +205,7 @@ export default function RegisterPage() {
                         type="email"
                         placeholder="E-posta adresinizi giriniz"
                         {...field}
-                        className="focus:ring-2 focus:ring-green-500"
+                        className="focus:ring-2 focus:ring-green-500 max-md:text-sm"
                       />
                     </FormControl>
                     <FormMessage />
@@ -227,7 +227,7 @@ export default function RegisterPage() {
                         <Input
                           placeholder="Adınız"
                           {...field}
-                          className="focus:ring-2 focus:ring-green-500"
+                          className="focus:ring-2 focus:ring-green-500 max-md:text-sm"
                         />
                       </FormControl>
                       <FormMessage />
@@ -248,7 +248,7 @@ export default function RegisterPage() {
                         <Input
                           placeholder="Soyadınız"
                           {...field}
-                          className="focus:ring-2 focus:ring-green-500"
+                          className="focus:ring-2 focus:ring-green-500 max-md:text-sm"
                         />
                       </FormControl>
                       <FormMessage />
@@ -299,7 +299,7 @@ export default function RegisterPage() {
                         type="password"
                         placeholder="Şifrenizi giriniz"
                         {...field}
-                        className="focus:ring-2 focus:ring-green-500"
+                        className="focus:ring-2 focus:ring-green-500 max-md:text-sm"
                       />
                     </FormControl>
                     <FormMessage />
@@ -321,7 +321,7 @@ export default function RegisterPage() {
                         type="password"
                         placeholder="Şifrenizi tekrar giriniz"
                         {...field}
-                        className="focus:ring-2 focus:ring-green-500"
+                        className="focus:ring-2 focus:ring-green-500 max-md:text-sm"
                       />
                     </FormControl>
                     <FormMessage />

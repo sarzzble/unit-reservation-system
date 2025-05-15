@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { getCookie } from "@/lib/auth";
+import { FaTooth } from "react-icons/fa";
 
 interface Reservation {
   id: number;
@@ -120,112 +121,104 @@ export default function MyReservationsPage() {
   return (
     <>
       <Navbar />
-      <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center">
-            <h2 className="text-3xl font-extrabold text-gray-900 sm:text-4xl">
+      <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 py-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
+        <div className="max-w-7xl mx-auto relative z-10">
+          <div className="text-center mb-8">
+            <h2 className="text-2xl font-extrabold sm:text-5xl text-green-700">
               Rezervasyonlarım
             </h2>
-            <p className="mt-3 text-xl text-gray-500">
+            <p className="mt-3 text-lg max-md:text-sm text-gray-600">
               Tüm rezervasyonlarınızı buradan görüntüleyebilir ve
               yönetebilirsiniz
             </p>
           </div>
 
-          <div className="mt-12">
-            {reservations.length === 0 ? (
-              <div className="text-center text-gray-500">
-                Henüz rezervasyonunuz bulunmuyor.
-              </div>
-            ) : (
-              <div className="bg-white shadow overflow-hidden sm:rounded-md">
-                <ul className="divide-y divide-gray-200">
-                  {reservations.map((reservation) => (
-                    <li key={reservation.id}>
-                      <div className="px-4 py-4 sm:px-6">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center">
-                            <div className="ml-3">
-                              <p className="text-sm font-medium text-gray-900">
-                                Ünit {reservation.unit.number}
-                              </p>
-                              <p className="text-sm text-gray-500">
-                                {new Date(reservation.date).toLocaleDateString(
-                                  "tr-TR"
-                                )}{" "}
-                                - {reservation.time_slot}
-                              </p>
-                            </div>
-                          </div>
-                          <div className="ml-4 flex-shrink-0">
-                            <button
-                              onClick={() => handleCancel(reservation)}
-                              className="inline-flex items-center px-3 py-1 border border-transparent text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 cursor-pointer"
-                            >
-                              İptal Et
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-          </div>
-
-          <Dialog open={showConfirmDialog} onOpenChange={handleCloseDialog}>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>
-                  {modalError ? "Hata" : "Rezervasyon İptali"}
-                </DialogTitle>
-                <DialogDescription>
-                  {modalError ? (
-                    <span className="text-red-600">{modalError}</span>
-                  ) : (
-                    selectedReservation && (
-                      <>
-                        Ünit {selectedReservation.unit.number} için{" "}
-                        {new Date(selectedReservation.date).toLocaleDateString(
-                          "tr-TR"
-                        )}{" "}
-                        tarihinde {selectedReservation.time_slot} saatlerindeki
-                        rezervasyonu iptal etmek istediğinizden emin misiniz?
-                      </>
-                    )
-                  )}
-                </DialogDescription>
-              </DialogHeader>
-              <DialogFooter>
-                {modalError ? (
-                  <Button
-                    onClick={handleCloseDialog}
-                    className="bg-red-600 hover:bg-red-700 cursor-pointer"
+          {reservations.length === 0 ? (
+            <div className="text-center text-gray-600 bg-white/80 backdrop-blur-sm p-8 rounded-lg shadow-lg">
+              Henüz rezervasyonunuz bulunmuyor.
+            </div>
+          ) : (
+            <div className="flex flex-col gap-6 w-full">
+              {reservations.map((reservation) => (
+                <div
+                  key={reservation.id}
+                  className="bg-white rounded-md shadow-sm p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4"
+                >
+                  <div className="flex items-center space-x-4">
+                    <FaTooth className="w-6 h-6 text-green-600 flex-shrink-0" />
+                    <div>
+                      <p className="text-sm sm:text-lg font-semibold text-gray-900">
+                        Ünit {reservation.unit.number}
+                      </p>
+                      <p className="text-xs sm:text-sm text-gray-600">
+                        {new Date(reservation.date).toLocaleDateString("tr-TR")}{" "}
+                        - {reservation.time_slot}
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => handleCancel(reservation)}
+                    className="px-4 py-2 text-xs sm:text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-md transition-colors cursor-pointer"
                   >
-                    Tamam
-                  </Button>
-                ) : (
-                  <>
-                    <Button
-                      variant="outline"
-                      onClick={handleCloseDialog}
-                      className="cursor-pointer"
-                    >
-                      Vazgeç
-                    </Button>
-                    <Button
-                      onClick={handleConfirmCancel}
-                      className="bg-red-600 hover:bg-red-700 cursor-pointer"
-                    >
-                      İptal Et
-                    </Button>
-                  </>
-                )}
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
+                    İptal Et
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
+
+        <Dialog open={showConfirmDialog} onOpenChange={handleCloseDialog}>
+          <DialogContent className="sm:max-w-md bg-white/95 backdrop-blur-sm border-0 shadow-xl">
+            <DialogHeader>
+              <DialogTitle className="text-2xl font-bold text-gray-800">
+                {modalError ? "Hata" : "Rezervasyon İptali"}
+              </DialogTitle>
+              <DialogDescription className="text-gray-600">
+                {modalError ? (
+                  <span className="text-red-600">{modalError}</span>
+                ) : (
+                  selectedReservation && (
+                    <>
+                      Ünit {selectedReservation.unit.number} için{" "}
+                      {new Date(selectedReservation.date).toLocaleDateString(
+                        "tr-TR"
+                      )}{" "}
+                      tarihinde {selectedReservation.time_slot} saatlerindeki
+                      rezervasyonu iptal etmek istediğinizden emin misiniz?
+                    </>
+                  )
+                )}
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter>
+              {modalError ? (
+                <Button
+                  onClick={handleCloseDialog}
+                  className="bg-red-600 hover:bg-red-700 text-white shadow-lg transition-all duration-200 cursor-pointer"
+                >
+                  Tamam
+                </Button>
+              ) : (
+                <>
+                  <Button
+                    variant="outline"
+                    onClick={handleCloseDialog}
+                    className="hover:bg-gray-100 transition-colors cursor-pointer"
+                  >
+                    Vazgeç
+                  </Button>
+                  <Button
+                    onClick={handleConfirmCancel}
+                    className="bg-red-600 hover:bg-red-700 text-white shadow-lg transition-all duration-200 cursor-pointer"
+                  >
+                    İptal Et
+                  </Button>
+                </>
+              )}
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     </>
   );

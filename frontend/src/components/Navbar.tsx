@@ -1,10 +1,15 @@
 "use client";
 
+import { useState, useRef, useEffect } from "react";
 import { logout } from "@/lib/auth";
 import Link from "next/link";
 import Image from "next/image";
+import { FiMenu, FiX } from "react-icons/fi";
 
 export default function Navbar() {
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+
   const handleLogout = () => {
     try {
       logout();
@@ -13,16 +18,34 @@ export default function Navbar() {
     }
   };
 
+  // Dış tıklamada menüyü kapatma
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setIsMenuOpen(false);
+      }
+    };
+
+    if (isMenuOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [isMenuOpen]);
+
   return (
     <nav className="bg-white border-b-2">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between h-16">
+        <div className="flex justify-between h-16 items-center">
+          {/* Logo */}
           <div className="flex items-center space-x-3">
             <Link
               href="/units"
               className="flex items-center space-x-3 hover:opacity-80 transition-opacity"
             >
-              <div className="relative w-16 h-16">
+              <div className="relative w-12 h-12 max-md:w-10 max-md:h-10">
                 <Image
                   src="/images/unit-reservation-system-logo.png"
                   alt="Unit Rezervasyon Sistemi Logo"
@@ -31,12 +54,24 @@ export default function Navbar() {
                   priority
                 />
               </div>
-              <span className="text-xl font-semibold text-gray-800">
+              <span className="text-lg max-md:text-sm font-semibold text-gray-800">
                 Ünit Rezervasyon Sistemi
               </span>
             </Link>
           </div>
-          <div className="flex items-center space-x-4">
+
+          {/* Hamburger Menu */}
+          <div className="sm:hidden pt-2.5">
+            <button
+              onClick={() => setIsMenuOpen(!isMenuOpen)}
+              className="text-gray-800 hover:opacity-80 transition-opacity focus:outline-none"
+            >
+              {isMenuOpen ? <FiX size={24} /> : <FiMenu size={24} />}
+            </button>
+          </div>
+
+          {/* Desktop Menu */}
+          <div className="hidden sm:flex items-center space-x-4">
             <Link
               href="/my-reservations"
               className="text-gray-800 hover:opacity-80 transition-opacity px-3 py-2 rounded-md text-sm font-medium"
@@ -45,12 +80,37 @@ export default function Navbar() {
             </Link>
             <button
               onClick={handleLogout}
-              className="ml-4 px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 cursor-pointer"
+              className="ml-2 px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 cursor-pointer"
             >
               Çıkış Yap
             </button>
           </div>
         </div>
+
+        {/* Mobile Menu */}
+        {isMenuOpen && (
+          <div
+            ref={menuRef}
+            className="sm:hidden absolute right-0 top-16 w-48 bg-white border shadow-lg z-50 space-y-2 rounded-br-sm rounded-bl-sm"
+          >
+            <Link
+              href="/my-reservations"
+              className="block text-gray-800 px-4 py-2 text-sm"
+              onClick={() => setIsMenuOpen(false)}
+            >
+              Rezervasyonlarım
+            </Link>
+            <button
+              onClick={() => {
+                setIsMenuOpen(false);
+                handleLogout();
+              }}
+              className="w-full text-left px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-br-sm rounded-bl-sm"
+            >
+              Çıkış Yap
+            </button>
+          </div>
+        )}
       </div>
     </nav>
   );
