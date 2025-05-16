@@ -2,13 +2,13 @@
 
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import { FaUserShield, FaUserGraduate } from "react-icons/fa";
+import { FaChalkboardTeacher, FaUserGraduate } from "react-icons/fa";
 
 export default function Home() {
   const router = useRouter();
 
-  const handleAdminLogin = () => {
-    window.location.href = "http://127.0.0.1:8000/admin";
+  const handleTeacherLogin = () => {
+    router.push("/teacher-login");
   };
 
   const handleStudentLogin = () => {
@@ -34,12 +34,12 @@ export default function Home() {
 
         <div className="flex flex-col sm:flex-row gap-4 w-full">
           <button
-            onClick={handleAdminLogin}
+            onClick={handleTeacherLogin}
             className="group relative w-full px-4 py-3 sm:px-6 sm:py-4 bg-blue-600 text-white text-sm sm:text-base rounded-lg hover:bg-blue-700 transition-all duration-300 cursor-pointer overflow-hidden flex items-center justify-center"
           >
             <span className="relative z-10 flex items-center gap-2">
-              <FaUserShield className="text-lg sm:text-xl" />
-              Admin Girişi
+              <FaChalkboardTeacher className="text-lg sm:text-xl" />
+              Öğretmen Girişi
             </span>
             <div className="absolute inset-0 bg-gradient-to-r from-blue-600 to-blue-800 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
           </button>

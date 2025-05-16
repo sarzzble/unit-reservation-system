@@ -2,7 +2,7 @@ from django.urls import path
 from .views import (
     CancelReservationAPIView, LoginAPIView, LogoutAPIView, RegisterView,
     UnitListView, MakeReservationView, MyReservationsView, UserUpdateAPIView,
-    UserInfoView, ChangePasswordView
+    UserInfoView, ChangePasswordView, TeacherReservationsView
 )
 
 urlpatterns = [
@@ -15,5 +15,6 @@ urlpatterns = [
     path("reservation/make/", MakeReservationView.as_view(), name='make-reservation'),
     path("reservation/cancel/<int:pk>/", CancelReservationAPIView.as_view(), name='cancel-reservation'),
     path("my-reservations/", MyReservationsView.as_view(), name='my-reservations'),
+    path("reservations/", TeacherReservationsView.as_view(), name='teacher-reservations'),
     path("change-password/", ChangePasswordView.as_view(), name="change-password"),
 ]

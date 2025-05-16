@@ -7,12 +7,22 @@ export interface Reservation {
   time_slot: string;
 }
 
+export interface TeacherReservation extends Reservation {
+  user: {
+    first_name: string;
+    last_name: string;
+    student_number: string;
+    student_class: string;
+  };
+}
+
 export interface User {
   name: string;
   surname: string;
   student_number: string;
   email: string;
   student_class: string;
+  is_staff: boolean;
 }
 
 export interface Unit {

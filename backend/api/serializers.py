@@ -36,18 +36,27 @@ class RegisterSerializer(serializers.ModelSerializer):
 class LoginSerializer(serializers.Serializer):
     student_number = serializers.CharField()
     password = serializers.CharField(write_only=True)
+    is_staff = serializers.BooleanField(default=False)
 
     def validate(self, data):
         student_number = data.get("student_number")
-        password =data.get("password")
+        password = data.get("password")
+        is_staff = data.get("is_staff", False)
 
         if student_number and password:
-            user = authenticate(student_number= student_number,password=password)
+            user = authenticate(student_number=student_number, password=password)
             
             if user is None:
-                raise serializers.ValidationError("Öğrenci numarası veya şifre yanlış.")
+                raise serializers.ValidationError("Sicil/öğrenci numarası veya şifre yanlış.")
             if not user.is_active:
                 raise serializers.ValidationError("Bu kullanıcı aktif değil.")
+            
+            # Öğretmen girişi kontrolü
+            if is_staff and not user.is_staff:
+                raise serializers.ValidationError("Bu giriş sadece öğretmenler içindir.")
+            # Öğrenci girişi kontrolü
+            if not is_staff and user.is_staff:
+                raise serializers.ValidationError("Bu giriş sadece öğrenciler içindir.")
         else:
             raise serializers.ValidationError("Lütfen tüm alanları doldurun")
         
@@ -137,6 +146,22 @@ class MyReservationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Reservation
         fields = ["id", "unit", "date", "time_slot"]
+
+class TeacherReservationSerializer(serializers.ModelSerializer):
+    unit = UnitSerializer()
+    user = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Reservation
+        fields = ["id", "unit", "date", "time_slot", "user"]
+
+    def get_user(self, obj):
+        return {
+            "first_name": obj.user.first_name,
+            "last_name": obj.user.last_name,
+            "student_number": obj.user.student_number,
+            "student_class": obj.user.student_class
+        }
 
 # Nöbetçi listesi
 class ShiftListSerializer(serializers.ModelSerializer):

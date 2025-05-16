@@ -3,7 +3,7 @@ from rest_framework.response import Response
 from rest_framework import status, permissions
 from datetime import timedelta, date
 from .models import Unit, Reservation, ShiftList, SystemSetting
-from .serializers import LoginSerializer, LogoutSerializer, RegisterSerializer, UnitSerializer, ReservationSerializer, MyReservationSerializer, ShiftListSerializer, UserUpdateSerializer, PasswordChangeSerializer
+from .serializers import LoginSerializer, LogoutSerializer, RegisterSerializer, UnitSerializer, ReservationSerializer, MyReservationSerializer, ShiftListSerializer, UserUpdateSerializer, PasswordChangeSerializer, TeacherReservationSerializer
 from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.token_blacklist.models import BlacklistedToken, OutstandingToken
@@ -65,7 +65,8 @@ class LoginAPIView(APIView):
                 "surname": user.last_name,
                 "student_number": user.student_number,
                 "email": user.email,
-                "student_class": user.student_class
+                "student_class": user.student_class,
+                "is_staff": user.is_staff  # Öğretmen/öğrenci ayrımı için
             },
             "access": access_token,
             "refresh": refresh_token
@@ -131,6 +132,18 @@ class MyReservationsView(APIView):
     def get(self, request):
         reservations = Reservation.objects.filter(user=request.user)
         serializer = MyReservationSerializer(reservations, many=True)
+        return Response(serializer.data)
+
+class TeacherReservationsView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request):
+        # Check if user is a teacher
+        if not request.user.is_staff:
+            return Response({"error": "Bu işlem için yetkiniz yok"}, status=status.HTTP_403_FORBIDDEN)
+        
+        reservations = Reservation.objects.all().order_by('-date', '-time_slot')
+        serializer = TeacherReservationSerializer(reservations, many=True)
         return Response(serializer.data)
 
 # Rezervasyon yapma
@@ -201,7 +214,8 @@ class UserInfoView(APIView):
             "surname": user.last_name,
             "student_number": user.student_number,
             "email": user.email,
-            "student_class": user.student_class
+            "student_class": user.student_class,
+            "is_staff": user.is_staff
         })
 
 class ChangePasswordView(APIView):

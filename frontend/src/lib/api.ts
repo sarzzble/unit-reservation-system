@@ -1,7 +1,7 @@
 import axios from "axios";
 import { getCookie, setCookie, deleteCookie } from "./auth";
 
-const API_URL = "http://localhost:8000/api";
+const API_URL = "http://127.0.0.1:8000/api";
 
 const api = axios.create({
   baseURL: API_URL,
@@ -62,11 +62,12 @@ api.interceptors.response.use(
   }
 );
 
-export const login = async (studentNumber: string, password: string) => {
+export const login = async (studentNumber: string, password: string, is_staff: boolean = false) => {
   try {
     const response = await api.post("/login/", {
       student_number: studentNumber,
       password: password,
+      is_staff: is_staff
     });
     return response.data;
   } catch (error) {
@@ -144,6 +145,15 @@ export const makeReservation = async (reservationData: {
 export const getMyReservations = async () => {
   try {
     const response = await api.get("/my-reservations/");
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const getReservations = async () => {
+  try {
+    const response = await api.get("/reservations/");
     return response.data;
   } catch (error) {
     throw error;

@@ -2,23 +2,15 @@
 
 import { useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { login } from "@/lib/api";
-import { setCookie } from "@/lib/auth";
+import Image from "next/image";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import * as z from "zod";
+import { FaChalkboardTeacher, FaLock } from "react-icons/fa";
 import { AxiosError } from "axios";
 import Link from "next/link";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
-import { LoginSchema } from "@/schemas";
-import { FaUserGraduate, FaLock, FaTooth } from "react-icons/fa";
-import Image from "next/image";
-import {
-  Card,
-  CardContent,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+
+import { Button } from "@/components/ui/button";
 import {
   Form,
   FormControl,
@@ -28,10 +20,13 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
+import { login } from "@/lib/api";
+import { setCookie } from "@/lib/auth";
+import { LoginSchema } from "@/schemas";
 
-function LoginForm() {
+function TeacherLoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [error, setError] = useState("");
@@ -50,15 +45,15 @@ function LoginForm() {
     setLoading(true);
 
     try {
-      const response = await login(values.student_number, values.password);
+      const response = await login(values.student_number, values.password, true); // is_staff true olarak gönderiliyor
 
       // Token'ları cookie'ye kaydet
-      setCookie("access_token", response.access, 1); // 1 gün
-      setCookie("refresh_token", response.refresh, 7); // 7 gün
-      setCookie("user", JSON.stringify(response.user), 1); // 1 gün
+      setCookie("access_token", response.access, 1);
+      setCookie("refresh_token", response.refresh, 7);
+      setCookie("user", JSON.stringify(response.user), 1);
 
-      // Eğer yönlendirilecek sayfa varsa oraya, yoksa units sayfasına git
-      const from = searchParams.get("from") || "/units";
+      // Eğer yönlendirilecek sayfa varsa oraya, yoksa teacher/units sayfasına git
+      const from = searchParams.get("from") || "/teacher/units";
       router.push(from);
     } catch (err: unknown) {
       if (err instanceof AxiosError) {
@@ -76,20 +71,20 @@ function LoginForm() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 to-blue-50 py-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
-      {/* Background Pattern with Teeth */}
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-blue-100 py-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
+      {/* Background Pattern */}
       <div className="absolute inset-0 z-0 opacity-10">
         <div className="absolute inset-0 grid grid-cols-12 gap-4 p-4">
           {Array.from({ length: 144 }).map((_, i) => (
             <div key={i} className="flex items-center justify-center">
-              <FaTooth className="w-6 h-6 text-gray-600" />
+              <FaChalkboardTeacher className="w-6 h-6 text-blue-600" />
             </div>
           ))}
         </div>
       </div>
 
       <Card className="w-[400px] shadow-xl border-0 bg-white/90 backdrop-blur-sm relative z-10">
-        <CardHeader className="">
+        <CardHeader>
           {/* Logo */}
           <div className="flex justify-center">
             <div className="relative w-24 h-24">
@@ -104,7 +99,7 @@ function LoginForm() {
           </div>
           <div className="space-y-1">
             <CardTitle className="text-2xl text-center font-bold text-gray-800">
-              Diş Üniti Rezervasyon Sistemi Öğrenci Girişi
+              Diş Üniti Rezervasyon Sistemi Öğretmen Girişi
             </CardTitle>
           </div>
         </CardHeader>
@@ -117,17 +112,17 @@ function LoginForm() {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel className="flex items-center gap-2 text-gray-700">
-                      <FaUserGraduate className="w-4 h-4" />
-                      Öğrenci Numarası
+                      <FaChalkboardTeacher className="w-4 h-4" />
+                      Sicil Numarası
                     </FormLabel>
                     <FormControl>
                       <Input
                         {...field}
-                        placeholder="Öğrenci numaranızı girin"
+                        placeholder="Sicil numaranızı girin"
                         type="text"
                         disabled={loading}
                         autoComplete="off"
-                        className="focus:ring-2 focus:ring-green-500 max-md:text-sm"
+                        className="focus:ring-2 focus:ring-blue-500 max-md:text-sm"
                       />
                     </FormControl>
                     <FormMessage />
@@ -150,7 +145,7 @@ function LoginForm() {
                         type="password"
                         disabled={loading}
                         autoComplete="current-password"
-                        className="focus:ring-2 focus:ring-green-500 max-md:text-sm"
+                        className="focus:ring-2 focus:ring-blue-500 max-md:text-sm"
                       />
                     </FormControl>
                     <FormMessage />
@@ -169,7 +164,7 @@ function LoginForm() {
               )}
               <Button
                 type="submit"
-                className="w-full bg-green-600 hover:bg-green-700 text-white transition-colors duration-200 cursor-pointer"
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white transition-colors duration-200 cursor-pointer"
                 disabled={loading}
               >
                 {loading ? "Giriş yapılıyor..." : "Giriş Yap"}
@@ -179,18 +174,9 @@ function LoginForm() {
         </CardContent>
         <CardFooter className="flex flex-col space-y-4 pb-6">
           <div className="text-sm text-center text-gray-600">
-            Hesabınız yok mu?{" "}
-            <Link
-              href="/register"
-              className="font-medium text-green-600 hover:text-green-500 transition-colors duration-200"
-            >
-              Kayıt olun
-            </Link>
-          </div>
-          <div className="text-sm text-center text-gray-600">
             <Link
               href="/"
-              className="font-medium text-green-600 hover:text-green-500 transition-colors duration-200"
+              className="font-medium text-blue-600 hover:text-blue-500 transition-colors duration-200"
             >
               Ana sayfaya dön
             </Link>
@@ -201,7 +187,7 @@ function LoginForm() {
   );
 }
 
-export default function LoginPage() {
+export default function TeacherLoginPage() {
   return (
     <Suspense
       fallback={
@@ -210,7 +196,7 @@ export default function LoginPage() {
         </div>
       }
     >
-      <LoginForm />
+      <TeacherLoginForm />
     </Suspense>
   );
-}
+} 

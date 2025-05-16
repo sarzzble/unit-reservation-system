@@ -23,13 +23,8 @@ export const getCookie = (name: string): string | undefined => {
 };
 
 export const logout = () => {
-  // Token'ları sil
   deleteCookie("access_token");
   deleteCookie("refresh_token");
-
-  // Kullanıcı bilgilerini temizle
+  deleteCookie("user");
   localStorage.removeItem("user");
-
-  // Login sayfasına yönlendir (parametresiz)
-  window.location.href = "/login";
 };

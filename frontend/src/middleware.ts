@@ -1,20 +1,34 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
-// Korumalı rotalar
-const protectedRoutes = ["/units", "/my-reservations"];
+// Öğrenci rotaları
+const studentRoutes = ["/units", "/my-reservations"];
+// Öğretmen rotaları
+const teacherRoutes = ["/teacher/units"];
 // Herkese açık rotalar
-const publicRoutes = ["/login", "/register"];
+const publicRoutes = ["/login", "/register", "/teacher-login"];
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const token = request.cookies.get("access_token")?.value;
+  const userCookie = request.cookies.get("user")?.value;
+  let user;
+  
+  try {
+    user = userCookie ? JSON.parse(userCookie) : null;
+  } catch {
+    user = null;
+  }
+
+  const isTeacher = user?.is_staff || false;
 
   // Anasayfa için özel kontrol
   if (pathname === "/") {
-    // Token varsa units sayfasına yönlendir
+    // Token varsa uygun sayfaya yönlendir
     if (token) {
-      return NextResponse.redirect(new URL("/units", request.url));
+      return NextResponse.redirect(
+        new URL(isTeacher ? "/teacher/units" : "/units", request.url)
+      );
     }
     // Token yoksa anasayfaya erişime izin ver
     return NextResponse.next();
@@ -22,23 +36,45 @@ export function middleware(request: NextRequest) {
 
   // Eğer login veya register sayfasındaysak
   if (publicRoutes.includes(pathname)) {
-    // Token varsa units sayfasına yönlendir
+    // Token varsa uygun sayfaya yönlendir
     if (token) {
-      return NextResponse.redirect(new URL("/units", request.url));
+      return NextResponse.redirect(
+        new URL(isTeacher ? "/teacher/units" : "/units", request.url)
+      );
     }
     // Token yoksa sayfaya erişime izin ver
     return NextResponse.next();
   }
 
-  // Korumalı rotalar için token kontrolü
-  if (protectedRoutes.some((route) => pathname.startsWith(route))) {
-    // Token yoksa login sayfasına yönlendir
+  // Öğretmen rotaları için kontrol
+  if (teacherRoutes.some((route) => pathname.startsWith(route))) {
+    // Token yoksa öğretmen girişine yönlendir
+    if (!token) {
+      const url = new URL("/teacher-login", request.url);
+      url.searchParams.set("from", pathname);
+      return NextResponse.redirect(url);
+    }
+    // Öğretmen değilse ana sayfaya yönlendir
+    if (!isTeacher) {
+      return NextResponse.redirect(new URL("/", request.url));
+    }
+    // Token varsa ve öğretmense sayfaya erişime izin ver
+    return NextResponse.next();
+  }
+
+  // Öğrenci rotaları için kontrol
+  if (studentRoutes.some((route) => pathname.startsWith(route))) {
+    // Token yoksa öğrenci girişine yönlendir
     if (!token) {
       const url = new URL("/login", request.url);
       url.searchParams.set("from", pathname);
       return NextResponse.redirect(url);
     }
-    // Token varsa sayfaya erişime izin ver
+    // Öğretmense öğretmen sayfasına yönlendir
+    if (isTeacher) {
+      return NextResponse.redirect(new URL("/teacher/units", request.url));
+    }
+    // Token varsa ve öğrenciyse sayfaya erişime izin ver
     return NextResponse.next();
   }
 
