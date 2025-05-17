@@ -1,7 +1,7 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status, permissions
-from datetime import timedelta, date
+from datetime import datetime, timedelta, date
 from .models import Unit, Reservation, ShiftList, SystemSetting
 from .serializers import LoginSerializer, LogoutSerializer, RegisterSerializer, UnitSerializer, ReservationSerializer, MyReservationSerializer, ShiftListSerializer, UserUpdateSerializer, PasswordChangeSerializer, TeacherReservationSerializer
 from rest_framework.permissions import IsAuthenticated
@@ -114,9 +114,9 @@ class UnitListView(APIView):
         user_class = request.user.student_class
         time_slots = []
         
-        if user_class == "4":
+        if user_class == "5":
             time_slots = ["09:00-10:30", "10:30-12:00"]
-        elif user_class == "5":
+        elif user_class == "4":
             time_slots = ["13:30-15:30", "15:30-17:00"]
         
         serializer = UnitSerializer(units, many=True, context={
@@ -156,22 +156,33 @@ class MakeReservationView(APIView):
         if not settings or not settings.is_reservation_active:
             return Response({"error": "Rezervasyon şu an kapalı"}, status=403)
 
-        serializer = ReservationSerializer(data=request.data, context ={"request": request})
-
+        serializer = ReservationSerializer(data=request.data, context={"request": request})
 
         if serializer.is_valid():
-            # Haftalık sınır 
-            today = date.today()
-            start_of_week = today - timedelta(days=today.weekday())  # Pazartesi
+            # Kullanıcının yapmak istediği rezervasyon tarihi
+            reservation_date_str = request.data.get("date")
+            if not reservation_date_str:
+                return Response({"error": "Rezervasyon tarihi belirtilmeli"}, status=400)
+
+            try:
+                reservation_date = datetime.strptime(reservation_date_str, "%Y-%m-%d").date()
+            except ValueError:
+                return Response({"error": "Tarih formatı YYYY-MM-DD olmalı"}, status=400)
+
+            # Haftanın başlangıç ve bitiş tarihi (rezervasyon tarihine göre)
+            start_of_week = reservation_date - timedelta(days=reservation_date.weekday())  # Pazartesi
             end_of_week = start_of_week + timedelta(days=6)
+
             user_reservations = Reservation.objects.filter(user=request.user, date__range=[start_of_week, end_of_week])
             if user_reservations.count() >= 5:
                 return Response({"error": "Haftalık rezervasyon hakkınızı doldurdunuz"}, status=400)
 
             reservation = serializer.save()
-            return Response({"message": "Rezervasyon yapıldı",
-                             "reservation_id": reservation.id
-                             },status=status.HTTP_201_CREATED)
+            return Response({
+                "message": "Rezervasyon yapıldı",
+                "reservation_id": reservation.id
+            }, status=status.HTTP_201_CREATED)
+
         return Response(serializer.errors, status=400)
 
 class CancelReservationAPIView(APIView):
