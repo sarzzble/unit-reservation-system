@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import User, Reservation,SystemSetting,ShiftList
+from .models import User, Reservation,SystemSetting
 
 
 # öğrencileri gösterir
@@ -17,5 +17,4 @@ class ReservationAdmin(admin.ModelAdmin):
     list_filter = ("date", "time_slot", "unit")
 
 admin.site.register(SystemSetting) # rezervasyon sistemini açar ve kapatır
-admin.site.register(ShiftList) # Metin girdisi alır
 

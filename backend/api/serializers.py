@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import User, Unit, Reservation, ShiftList
+from .models import DutySchedule, User, Unit, Reservation
 from django.contrib.auth import authenticate
 
 # User oluşturma
@@ -147,6 +147,7 @@ class MyReservationSerializer(serializers.ModelSerializer):
         model = Reservation
         fields = ["id", "unit", "date", "time_slot"]
 
+#Öğretmen rezervasyonları göster
 class TeacherReservationSerializer(serializers.ModelSerializer):
     unit = UnitSerializer()
     user = serializers.SerializerMethodField()
@@ -162,12 +163,29 @@ class TeacherReservationSerializer(serializers.ModelSerializer):
             "student_number": obj.user.student_number,
             "student_class": obj.user.student_class
         }
+    
+# öğrenci gösterimi
+class TeacherStudentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ["student_number", "first_name", "last_name", "student_class"]
+
 
 # Nöbetçi listesi
-class ShiftListSerializer(serializers.ModelSerializer):
+class DutyScheduleSerializer(serializers.ModelSerializer):
     class Meta:
-        model = ShiftList
-        fields = "__all__"
+        model = DutySchedule
+        fields = [
+            "id", "teacher",
+            "monday", "tuesday", "wednesday", "thursday", "friday",
+            "created_at"
+        ]
+        read_only_fields = ["teacher", "created_at"]
+
+    def create(self, validated_data):
+        request = self.context.get("request")
+        validated_data["teacher"] = request.user
+        return super().create(validated_data)
 
 # Şifre değiştirme
 class PasswordChangeSerializer(serializers.Serializer):

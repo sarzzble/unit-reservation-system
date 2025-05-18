@@ -1,12 +1,12 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework import status, permissions
+from rest_framework import status, permissions,filters,generics
 from datetime import datetime, timedelta, date
-from .models import Unit, Reservation, ShiftList, SystemSetting
-from .serializers import LoginSerializer, LogoutSerializer, RegisterSerializer, UnitSerializer, ReservationSerializer, MyReservationSerializer, ShiftListSerializer, UserUpdateSerializer, PasswordChangeSerializer, TeacherReservationSerializer
+from .models import DutySchedule, Unit, Reservation, SystemSetting,User
+from .serializers import DutyScheduleSerializer, LoginSerializer, LogoutSerializer, RegisterSerializer, TeacherStudentSerializer, UnitSerializer, ReservationSerializer, MyReservationSerializer, UserUpdateSerializer, PasswordChangeSerializer, TeacherReservationSerializer
 from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.tokens import RefreshToken
-from rest_framework_simplejwt.token_blacklist.models import BlacklistedToken, OutstandingToken
+from django_filters.rest_framework import DjangoFilterBackend 
 
 # Kayıt olmav
 class RegisterView(APIView):
@@ -138,13 +138,38 @@ class TeacherReservationsView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def get(self, request):
-        # Check if user is a teacher
         if not request.user.is_staff:
             return Response({"error": "Bu işlem için yetkiniz yok"}, status=status.HTTP_403_FORBIDDEN)
-        
-        reservations = Reservation.objects.all().order_by('-date', '-time_slot')
+
+        # Query parametresinden student_number alınır
+        student_number = request.query_params.get("student_number", None)
+
+        if student_number:
+            reservations = Reservation.objects.filter(user__student_number=student_number).order_by("-date", "-time_slot")
+        else:
+            reservations = Reservation.objects.all().order_by("-date", "-time_slot")
+
         serializer = TeacherReservationSerializer(reservations, many=True)
         return Response(serializer.data)
+    
+class TeacherStudentListView(generics.ListAPIView):
+    permission_classes = [permissions.IsAuthenticated]
+    serializer_class = TeacherStudentSerializer
+
+    # Sadece öğrencileri getir
+    queryset = User.objects.filter(is_staff=False)
+
+    # Filtreleme ve sıralama desteği
+    filter_backends = [DjangoFilterBackend, filters.OrderingFilter]
+    filterset_fields = ["student_class", "student_number"]  # filtrelenebilecek alanlar
+    ordering_fields = ["first_name", "last_name", "student_number", "student_class"]
+    ordering = ["first_name"]  # varsayılan sıralama
+
+    def get_queryset(self):
+        if not self.request.user.is_staff:
+            return User.objects.none()  # Yetkisi olmayanlar için boş veri
+        return super().get_queryset()
+
 
 # Rezervasyon yapma
 class MakeReservationView(APIView):
@@ -208,12 +233,22 @@ class CancelReservationAPIView(APIView):
         return Response({"message": "Rezervasyon başarıyla iptal edildi."}, status=status.HTTP_204_NO_CONTENT)
 
 # Nöbetçi listesi (Admin ekler)
-class ShiftListView(APIView):
-    def get(self, request):
-        liste = ShiftList.objects.all()
-        serializer = ShiftListSerializer(liste, many=True)
-        return Response(serializer.data)
+class DutyScheduleCreateView(generics.CreateAPIView):
+    queryset = DutySchedule.objects.all()
+    serializer_class = DutyScheduleSerializer
+    permission_classes = [permissions.IsAuthenticated]
 
+    def perform_create(self, serializer):
+        serializer.save(teacher=self.request.user)
+
+# Nöbetci listesi gönderilir.
+class DutyScheduleListView(generics.ListAPIView):
+    serializer_class = DutyScheduleSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        return DutySchedule.objects.all().order_by("-created_at")
+    
 # Kullanıcı bilgilerini getir
 class UserInfoView(APIView):
     permission_classes = [permissions.IsAuthenticated]

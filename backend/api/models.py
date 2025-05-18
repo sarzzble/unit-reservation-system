@@ -97,11 +97,6 @@ class Reservation(models.Model):
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
         
-# Nöbetçi listesi
-class ShiftList(models.Model):
-    week = models.DateField()  # Pazartesi gibi haftalık başlangıç tarihi
-    content = models.TextField()  # Yazılı nöbet listesi
-
 # Rezervasyon sistemi açıp katmatma
 class SystemSetting(models.Model):
     is_reservation_active = models.BooleanField(default=True)
@@ -111,3 +106,17 @@ class SystemSetting(models.Model):
         constraints = [
             models.UniqueConstraint(fields=["is_reservation_active"], name="unique_system_setting")
         ]
+
+
+# nöbetçi listesi
+class DutySchedule(models.Model):
+    teacher = models.ForeignKey(User, on_delete=models.CASCADE, related_name="duty_schedules")
+    monday = models.TextField(blank=True,default="")
+    tuesday = models.TextField(blank=True,default="")
+    wednesday = models.TextField(blank=True,default="")
+    thursday = models.TextField(blank=True,default="")
+    friday = models.TextField(blank=True,default="")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Duty Schedule by {self.teacher.email} on {self.created_at.date()}"
