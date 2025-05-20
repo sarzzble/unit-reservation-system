@@ -2,7 +2,12 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { getMyReservations, cancelReservation } from "@/lib/api";
+import {
+  getMyReservations,
+  cancelReservation,
+  deletePastReservations,
+  deleteSinglePastReservation,
+} from "@/lib/api";
 import { AxiosError } from "axios";
 import Navbar from "@/components/Navbar";
 import {
@@ -13,9 +18,15 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
 import { getCookie } from "@/lib/auth";
-import { FaTooth } from "react-icons/fa";
+import { FaTooth, FaTimes } from "react-icons/fa";
 import { Reservation } from "@/interfaces";
 
 export default function MyReservationsPage() {
@@ -27,6 +38,18 @@ export default function MyReservationsPage() {
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [selectedReservation, setSelectedReservation] =
     useState<Reservation | null>(null);
+  const [deleteAllLoading, setDeleteAllLoading] = useState(false);
+  const [deleteSingleLoading, setDeleteSingleLoading] = useState<number | null>(
+    null
+  );
+
+  // Aktif ve geçmiş rezervasyonları ayır
+  const activeReservations = reservations.filter(
+    (reservation) => new Date(reservation.date) >= new Date()
+  );
+  const pastReservations = reservations.filter(
+    (reservation) => new Date(reservation.date) < new Date()
+  );
 
   const fetchReservations = async () => {
     try {
@@ -88,6 +111,46 @@ export default function MyReservationsPage() {
     setShowConfirmDialog(false);
   };
 
+  const handleDeleteAllPast = async () => {
+    setDeleteAllLoading(true);
+    try {
+      await deletePastReservations();
+      fetchReservations();
+    } catch (err) {
+      if (err instanceof AxiosError) {
+        setModalError(
+          err.response?.data?.error ||
+            err.response?.data?.detail ||
+            "Geçmiş rezervasyonlar silinirken bir hata oluştu"
+        );
+      } else {
+        setModalError("Geçmiş rezervasyonlar silinirken bir hata oluştu");
+      }
+    } finally {
+      setDeleteAllLoading(false);
+    }
+  };
+
+  const handleDeleteSinglePast = async (id: number) => {
+    setDeleteSingleLoading(id);
+    try {
+      await deleteSinglePastReservation(id);
+      fetchReservations();
+    } catch (err) {
+      if (err instanceof AxiosError) {
+        setModalError(
+          err.response?.data?.error ||
+            err.response?.data?.detail ||
+            "Rezervasyon silinirken bir hata oluştu"
+        );
+      } else {
+        setModalError("Rezervasyon silinirken bir hata oluştu");
+      }
+    } finally {
+      setDeleteSingleLoading(null);
+    }
+  };
+
   if (loading) {
     return (
       <>
@@ -127,39 +190,97 @@ export default function MyReservationsPage() {
             </p>
           </div>
 
-          {reservations.length === 0 ? (
-            <div className="text-center text-gray-600 max-md:text-sm">
-              Henüz rezervasyonunuz bulunmuyor.
-            </div>
-          ) : (
-            <div className="flex flex-col gap-6 w-full">
-              {reservations.map((reservation) => (
-                <div
-                  key={reservation.id}
-                  className="bg-white rounded-md shadow-sm p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4"
-                >
-                  <div className="flex items-center space-x-4">
-                    <FaTooth className="w-6 h-6 text-green-600 flex-shrink-0" />
-                    <div>
-                      <p className="text-sm sm:text-lg font-semibold text-gray-900">
-                        Ünit {reservation.unit.number}
-                      </p>
-                      <p className="text-xs sm:text-sm text-gray-600">
-                        {new Date(reservation.date).toLocaleDateString("tr-TR")}{" "}
-                        - {reservation.time_slot}
-                      </p>
+          <Accordion
+            type="multiple"
+            className="w-full space-y-4"
+            defaultValue={["active"]}
+          >
+            <AccordionItem value="active" className="px-4">
+              <AccordionTrigger className="text-lg font-semibold text-green-700 hover:no-underline cursor-pointer">
+                Rezervasyonlarım
+              </AccordionTrigger>
+              <AccordionContent>
+                <div className="flex flex-col gap-4 py-4">
+                  {activeReservations.map((reservation) => (
+                    <div
+                      key={reservation.id}
+                      className="bg-white rounded-md shadow-sm p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border border-gray-100"
+                    >
+                      <div className="flex items-center space-x-4">
+                        <FaTooth className="w-6 h-6 text-green-600 flex-shrink-0" />
+                        <div>
+                          <p className="text-sm sm:text-lg font-semibold text-gray-900">
+                            Ünit {reservation.unit.number}
+                          </p>
+                          <p className="text-xs sm:text-sm text-gray-600">
+                            {new Date(reservation.date).toLocaleDateString(
+                              "tr-TR"
+                            )}{" "}
+                            - {reservation.time_slot}
+                          </p>
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => handleCancel(reservation)}
+                        className="px-4 py-2 text-xs sm:text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-md transition-colors cursor-pointer"
+                      >
+                        İptal Et
+                      </button>
                     </div>
-                  </div>
-                  <button
-                    onClick={() => handleCancel(reservation)}
-                    className="px-4 py-2 text-xs sm:text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-md transition-colors cursor-pointer"
-                  >
-                    İptal Et
-                  </button>
+                  ))}
                 </div>
-              ))}
-            </div>
-          )}
+              </AccordionContent>
+            </AccordionItem>
+
+            <AccordionItem value="open" className="px-4">
+              <AccordionTrigger className="text-lg font-semibold text-gray-600 hover:no-underline cursor-pointer">
+                Geçmiş Rezervasyonlarım
+              </AccordionTrigger>
+              <AccordionContent>
+                {pastReservations.length > 0 && (
+                  <div className="flex justify-end mb-4">
+                    <button
+                      onClick={handleDeleteAllPast}
+                      disabled={deleteAllLoading}
+                      className="text-sm text-red-600 hover:text-red-700 transition-colors cursor-pointer"
+                    >
+                      {deleteAllLoading ? "Siliniyor..." : "Tümünü Temizle"}
+                    </button>
+                  </div>
+                )}
+                <div className="flex flex-col gap-4 py-4">
+                  {pastReservations.map((reservation) => (
+                    <div
+                      key={reservation.id}
+                      className="bg-gray-50 rounded-md shadow-sm p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border border-gray-100"
+                    >
+                      <div className="flex items-center space-x-4">
+                        <FaTooth className="w-6 h-6 text-gray-400 flex-shrink-0" />
+                        <div>
+                          <p className="text-sm sm:text-lg font-semibold text-gray-500">
+                            Ünit {reservation.unit.number}
+                          </p>
+                          <p className="text-xs sm:text-sm text-gray-400">
+                            {new Date(reservation.date).toLocaleDateString(
+                              "tr-TR"
+                            )}{" "}
+                            - {reservation.time_slot}
+                          </p>
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => handleDeleteSinglePast(reservation.id)}
+                        disabled={deleteSingleLoading === reservation.id}
+                        className="text-gray-400 hover:text-red-600 transition-colors cursor-pointer"
+                      >
+                        <FaTimes className="w-5 h-5" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </AccordionContent>
+            </AccordionItem>
+          </Accordion>
         </div>
 
         <Dialog open={showConfirmDialog} onOpenChange={handleCloseDialog}>

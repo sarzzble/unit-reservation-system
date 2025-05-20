@@ -96,6 +96,13 @@ class UserUpdateAPIView(APIView):
     permission_classes = [IsAuthenticated]
 
     def put(self, request):
+        # Eğer mevcut e-posta ile yeni e-posta aynıysa hata döndür
+        if request.data.get('email') == request.user.email:
+            return Response(
+                {"email": ["Girdiğiniz e-posta adresi mevcut e-posta adresiniz ile aynı. Lütfen farklı bir e-posta adresi girin."]},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
         serializer = UserUpdateSerializer(instance=request.user, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
@@ -223,7 +230,7 @@ class CancelReservationAPIView(APIView):
         
         # Bugünün tarihi veya geçmiş rezervasyon iptal edilemez
         if reservation.date <= today:
-            return Response({"error": "Bugünkü veya geçmiş tarihteki rezervasyonlar iptal edilemez."}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"error": "Bugünkü rezervasyonlar iptal edilemez."}, status=status.HTTP_400_BAD_REQUEST)
 
         # Rezervasyon tarihi yarınsa iptal edilemez
         if (reservation.date - today).days < 2:
@@ -231,6 +238,30 @@ class CancelReservationAPIView(APIView):
 
         reservation.delete()
         return Response({"message": "Rezervasyon başarıyla iptal edildi."}, status=status.HTTP_204_NO_CONTENT)
+
+# Geçmiş rezervasyonları silme
+class DeletePastReservationsView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def delete(self, request, pk=None):
+        today = date.today()
+        
+        if pk:
+            # Tek bir geçmiş rezervasyonu sil
+            try:
+                reservation = Reservation.objects.get(pk=pk, user=request.user)
+                if reservation.date < today:
+                    reservation.delete()
+                    return Response({"message": "Geçmiş rezervasyon başarıyla silindi."}, status=status.HTTP_204_NO_CONTENT)
+                return Response({"error": "Sadece geçmiş rezervasyonlar silinebilir."}, status=status.HTTP_400_BAD_REQUEST)
+            except Reservation.DoesNotExist:
+                return Response({"error": "Rezervasyon bulunamadı."}, status=status.HTTP_404_NOT_FOUND)
+        else:
+            # Tüm geçmiş rezervasyonları sil
+            past_reservations = Reservation.objects.filter(user=request.user, date__lt=today)
+            count = past_reservations.count()
+            past_reservations.delete()
+            return Response({"message": f"{count} adet geçmiş rezervasyon başarıyla silindi."}, status=status.HTTP_200_OK)
 
 # Nöbetçi listesi (Admin ekler)
 class DutyScheduleCreateView(generics.CreateAPIView):

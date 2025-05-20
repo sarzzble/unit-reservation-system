@@ -1,5 +1,6 @@
 import axios from "axios";
 import { getCookie, setCookie, deleteCookie } from "./auth";
+import { TeacherReservation } from "@/interfaces";
 
 const API_URL = "http://127.0.0.1:8000/api";
 
@@ -62,12 +63,16 @@ api.interceptors.response.use(
   }
 );
 
-export const login = async (studentNumber: string, password: string, is_staff: boolean = false) => {
+export const login = async (
+  studentNumber: string,
+  password: string,
+  is_staff: boolean = false
+) => {
   try {
     const response = await api.post("/login/", {
       student_number: studentNumber,
       password: password,
-      is_staff: is_staff
+      is_staff: is_staff,
     });
     return response.data;
   } catch (error) {
@@ -151,13 +156,12 @@ export const getMyReservations = async () => {
   }
 };
 
-export const getReservations = async () => {
-  try {
-    const response = await api.get("/reservations/");
-    return response.data;
-  } catch (error) {
-    throw error;
-  }
+export const getReservations = async (
+  student_number?: string
+): Promise<TeacherReservation[]> => {
+  const params = student_number ? { student_number } : {};
+  const response = await api.get("/reservations/", { params });
+  return response.data;
 };
 
 export const cancelReservation = async (reservationId: number) => {
@@ -194,6 +198,24 @@ export const changePassword = async (passwordData: {
 }) => {
   try {
     const response = await api.post("/change-password/", passwordData);
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const deletePastReservations = async () => {
+  try {
+    const response = await api.delete("/reservation/delete-past/");
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const deleteSinglePastReservation = async (id: number) => {
+  try {
+    const response = await api.delete(`/reservation/delete-past/${id}/`);
     return response.data;
   } catch (error) {
     throw error;
