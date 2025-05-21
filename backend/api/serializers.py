@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import DutySchedule, User, Unit, Reservation
+from .models import DutySchedule, User, Unit, Reservation, Message
 from django.contrib.auth import authenticate
 from datetime import datetime, date
 
@@ -233,3 +233,9 @@ class PasswordChangeSerializer(serializers.Serializer):
         if not user.check_password(value):
             raise serializers.ValidationError("Mevcut şifre yanlış")
         return value
+
+class MessageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Message
+        fields = ['id', 'title', 'content', 'created_at', 'is_read']
+        read_only_fields = ['created_at']

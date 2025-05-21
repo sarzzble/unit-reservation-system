@@ -7,7 +7,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { FiMenu, FiX } from "react-icons/fi";
 import { useRouter } from "next/navigation";
-import { FaUser } from "react-icons/fa";
+import { FaUser, FaRegEnvelope } from "react-icons/fa";
 import { LuCalendarClock } from "react-icons/lu";
 
 export default function Navbar() {
@@ -111,6 +111,13 @@ export default function Navbar() {
               <FaUser className="w-4 h-4" />
               Profilim
             </Link>
+            <Link
+              href="/messages"
+              className="flex items-center gap-2 text-gray-800 hover:opacity-80 transition-opacity px-3 py-2 rounded-md text-sm font-medium"
+            >
+              <FaRegEnvelope className="w-4 h-4" />
+              Mesajlar
+            </Link>
             <button
               onClick={handleLogout}
               className="ml-2 px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 cursor-pointer"
@@ -143,6 +150,14 @@ export default function Navbar() {
             >
               <FaUser className="w-4 h-4" />
               Profilim
+            </Link>
+            <Link
+              href="/messages"
+              className="flex items-center gap-2 text-gray-800 px-4 py-2 text-sm"
+              onClick={() => setIsMenuOpen(false)}
+            >
+              <FaRegEnvelope className="w-4 h-4" />
+              Mesajlar
             </Link>
             <button
               onClick={() => {

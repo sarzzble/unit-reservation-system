@@ -222,4 +222,31 @@ export const deleteSinglePastReservation = async (id: number) => {
   }
 };
 
+export const getMessages = async () => {
+  try {
+    const response = await api.get("/messages/");
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const deleteMessage = async (id: number) => {
+  try {
+    const response = await api.delete(`/messages/${id}/`);
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const deleteAllMessages = async () => {
+  try {
+    const response = await api.delete("/messages/");
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
 export default api;

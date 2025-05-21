@@ -2,8 +2,8 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status, permissions,filters,generics
 from datetime import datetime, timedelta, date
-from .models import DutySchedule, Unit, Reservation, SystemSetting,User
-from .serializers import DutyScheduleSerializer, LoginSerializer, LogoutSerializer, RegisterSerializer, TeacherStudentSerializer, UnitSerializer, ReservationSerializer, MyReservationSerializer, UserUpdateSerializer, PasswordChangeSerializer, TeacherReservationSerializer
+from .models import DutySchedule, Unit, Reservation, SystemSetting,User, Message
+from .serializers import DutyScheduleSerializer, LoginSerializer, LogoutSerializer, RegisterSerializer, TeacherStudentSerializer, UnitSerializer, ReservationSerializer, MyReservationSerializer, UserUpdateSerializer, PasswordChangeSerializer, TeacherReservationSerializer, MessageSerializer
 from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.tokens import RefreshToken
 from django_filters.rest_framework import DjangoFilterBackend 
@@ -256,7 +256,17 @@ class CancelReservationAPIView(APIView):
         if (reservation.date - today).days < 2:
             return Response({"error": "Randevu yalnızca en az 1 gün öncesinden iptal edilebilir."}, status=status.HTTP_400_BAD_REQUEST)
 
+        # Rezervasyon siliniyor
+        student_user = reservation.user
+        reservation_info = f"{reservation.unit.number} numaralı ünit, {reservation.date} {reservation.time_slot}"
         reservation.delete()
+        # Eğer öğretmen ise öğrenciye mesaj gönder
+        if request.user.is_staff:
+            Message.objects.create(
+                user=student_user,
+                title="Rezervasyonunuz İptal Edildi",
+                content=f"{reservation_info} için yaptığınız rezervasyon öğretmen tarafından iptal edildi. Detaylar için öğretmeninizle iletişime geçebilirsiniz."
+            )
         return Response({"message": "Rezervasyon başarıyla iptal edildi."}, status=status.HTTP_204_NO_CONTENT)
 
 # Geçmiş rezervasyonları silme
@@ -326,6 +336,28 @@ class ChangePasswordView(APIView):
             user.save()
             return Response({"message": "Şifre başarıyla değiştirildi"}, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class StudentMessagesView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request):
+        user = request.user
+        messages = Message.objects.filter(user=user).order_by('-created_at')
+        serializer = MessageSerializer(messages, many=True)
+        return Response(serializer.data)
+
+    def delete(self, request, pk=None):
+        user = request.user
+        if pk:
+            try:
+                msg = Message.objects.get(pk=pk, user=user)
+                msg.delete()
+                return Response({"message": "Mesaj silindi."}, status=204)
+            except Message.DoesNotExist:
+                return Response({"error": "Mesaj bulunamadı."}, status=404)
+        else:
+            deleted, _ = Message.objects.filter(user=user).delete()
+            return Response({"message": f"{deleted} mesaj silindi."}, status=200)
 
 
 
