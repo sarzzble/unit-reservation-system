@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { format } from "date-fns";
 import { tr } from "date-fns/locale";
-import { FaUserGraduate, FaTrash } from "react-icons/fa";
+import { FaUserGraduate, FaTrash, FaSearch } from "react-icons/fa";
 import { AxiosError } from "axios";
 
 import { Button } from "@/components/ui/button";
@@ -28,6 +28,7 @@ import {
 import { getReservations, cancelReservation, getUserInfo } from "@/lib/api";
 import { TeacherReservation } from "@/interfaces";
 import Navbar from "@/components/Navbar";
+import { Input } from "@/components/ui/input";
 
 export default function TeacherUnitsPage() {
   const router = useRouter();
@@ -38,6 +39,9 @@ export default function TeacherUnitsPage() {
   const [selectedReservationId, setSelectedReservationId] = useState<
     number | null
   >(null);
+  const [searchStudentNumber, setSearchStudentNumber] = useState("");
+  const [searchLoading, setSearchLoading] = useState(false);
+  const [searchedStudentName, setSearchedStudentName] = useState<string>("");
 
   useEffect(() => {
     const fetchUserAndReservations = async () => {
@@ -93,6 +97,33 @@ export default function TeacherUnitsPage() {
     }
   };
 
+  const handleSearch = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+    setSearchLoading(true);
+    try {
+      const data = await getReservations(searchStudentNumber);
+      setReservations(data);
+      if (data.length > 0) {
+        setSearchedStudentName(
+          data[0].user.first_name + " " + data[0].user.last_name
+        );
+      } else {
+        setSearchedStudentName("");
+      }
+    } catch (error) {
+      setReservations([]);
+      setSearchedStudentName("");
+      if (error instanceof AxiosError) {
+        setError(error.response?.data?.error || "Bir hata oluştu");
+      } else {
+        setError("Beklenmeyen bir hata oluştu");
+      }
+    } finally {
+      setSearchLoading(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -106,13 +137,43 @@ export default function TeacherUnitsPage() {
       <Navbar />
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-blue-100 p-4 sm:p-6 lg:p-8">
         <div className="max-w-7xl mx-auto">
-          <div className="flex justify-between items-center mb-6">
+          <div className="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4">
             <div>
               <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">
                 Ünit Rezervasyonları
               </h1>
-              <p className="text-gray-600 mt-1">Tüm öğrenci rezervasyonları</p>
+              <p className="text-gray-600 mt-1">
+                {searchedStudentName
+                  ? `"${searchedStudentName}" isimli öğrenciye ait rezervasyonlar`
+                  : "Tüm öğrenci rezervasyonları"}
+              </p>
             </div>
+            <form onSubmit={handleSearch} className="flex items-center gap-2">
+              <div className="relative">
+                <Input
+                  type="text"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                  maxLength={12}
+                  placeholder="Öğrenci Numarası"
+                  value={searchStudentNumber}
+                  onChange={(e) => {
+                    // Sadece rakam girilmesine izin ver
+                    const val = e.target.value.replace(/[^0-9]/g, "");
+                    setSearchStudentNumber(val);
+                  }}
+                  className="w-48 bg-white pr-10"
+                />
+                <FaSearch className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+              </div>
+              <Button
+                type="submit"
+                disabled={searchLoading}
+                className="bg-blue-600 hover:bg-blue-700 text-white cursor-pointer"
+              >
+                {searchLoading ? "Aranıyor..." : "Ara"}
+              </Button>
+            </form>
           </div>
 
           {error && (
