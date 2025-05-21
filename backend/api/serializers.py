@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from .models import DutySchedule, User, Unit, Reservation
 from django.contrib.auth import authenticate
+from datetime import datetime, date
 
 # User oluşturma
 class RegisterSerializer(serializers.ModelSerializer):
@@ -98,18 +99,36 @@ class UnitSerializer(serializers.ModelSerializer):
         available_time_slots = self.context.get("available_time_slots", [])
         
         if selected_date and available_time_slots:
-            # Get all reservations for this unit on the selected date
             reservations = Reservation.objects.filter(
                 unit=obj,
                 date=selected_date,
-                time_slot__in=available_time_slots  # Sadece kullanıcının sınıfına uygun zaman dilimlerini kontrol et
-            )
-            # Return list of reserved time slots
+                time_slot__in=available_time_slots
+            ).select_related('user')
+            
             return [res.time_slot for res in reservations]
         return []
 
     def get_available_time_slots(self, obj):
         return self.context.get("available_time_slots", [])
+
+    def get_disabled_time_slots(self, obj):
+        selected_date = self.context.get("selected_date")
+        available_time_slots = self.context.get("available_time_slots", [])
+        disabled_slots = []
+
+        if selected_date:
+            selected_date_obj = datetime.strptime(selected_date, "%Y-%m-%d").date()
+            today = date.today()
+
+            # Eğer seçili tarih bugünse, geçmiş saatleri devre dışı bırak
+            if selected_date_obj == today:
+                current_time = datetime.now().time()
+                for slot in available_time_slots:
+                    start_time = datetime.strptime(slot.split("-")[0], "%H:%M").time()
+                    if start_time <= current_time:
+                        disabled_slots.append(slot)
+
+        return disabled_slots
     
 # Rezervasyon işlemi 
 class ReservationSerializer(serializers.ModelSerializer):
@@ -142,10 +161,19 @@ class ReservationSerializer(serializers.ModelSerializer):
 # Öğrenci rezervasyonlarını göster
 class MyReservationSerializer(serializers.ModelSerializer):
     unit = UnitSerializer()
+    user = serializers.SerializerMethodField()
 
     class Meta:
         model = Reservation
-        fields = ["id", "unit", "date", "time_slot"]
+        fields = ["id", "unit", "date", "time_slot", "user"]
+
+    def get_user(self, obj):
+        return {
+            "first_name": obj.user.first_name,
+            "last_name": obj.user.last_name,
+            "student_number": obj.user.student_number,
+            "student_class": obj.user.student_class
+        }
 
 #Öğretmen rezervasyonları göster
 class TeacherReservationSerializer(serializers.ModelSerializer):
@@ -196,6 +224,8 @@ class PasswordChangeSerializer(serializers.Serializer):
     def validate(self, data):
         if data['new_password'] != data['new_password2']:
             raise serializers.ValidationError({"new_password2": "Yeni şifreler eşleşmiyor"})
+        if data['current_password'] == data['new_password']:
+            raise serializers.ValidationError({"new_password": "Yeni şifre mevcut şifreyle aynı olamaz"})
         return data
 
     def validate_current_password(self, value):

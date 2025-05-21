@@ -138,7 +138,13 @@ export default function ProfilePage() {
     return (
       <>
         <Navbar />
-        <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 py-12 px-4 sm:px-6 lg:px-8">
+        <div
+          className={`min-h-screen py-12 px-4 sm:px-6 lg:px-8 ${
+            user && user.is_staff
+              ? "bg-gradient-to-br from-blue-50 to-blue-100"
+              : "bg-gradient-to-br from-green-50 to-blue-50"
+          }`}
+        >
           <div className="max-w-3xl mx-auto">
             <div className="text-center text-gray-600">Yükleniyor...</div>
           </div>
@@ -165,10 +171,20 @@ export default function ProfilePage() {
   return (
     <>
       <Navbar />
-      <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 py-12 px-4 sm:px-6 lg:px-8">
+      <div
+        className={`min-h-screen py-12 px-4 sm:px-6 lg:px-8 ${
+          user.is_staff
+            ? "bg-gradient-to-br from-blue-50 to-blue-100"
+            : "bg-gradient-to-br from-green-50 to-blue-50"
+        }`}
+      >
         <div className="max-w-3xl mx-auto">
           <div className="text-center mb-8">
-            <h2 className="text-3xl font-extrabold sm:text-4xl text-green-700">
+            <h2
+              className={`text-3xl font-extrabold sm:text-4xl ${
+                user.is_staff ? "text-blue-700" : "text-green-700"
+              }`}
+            >
               Profil Bilgilerim
             </h2>
             <p className="mt-3 text-xl text-gray-600">
@@ -180,7 +196,9 @@ export default function ProfilePage() {
             <div className="mb-6 p-4 bg-gray-50 rounded-lg space-y-4">
               <div className="flex items-center gap-3 text-gray-600">
                 <FaIdCard className="w-5 h-5" />
-                <span className="font-medium">Öğrenci Numarası:</span>
+                <span className="font-medium">
+                  {user.is_staff ? "Sicil Numarası" : "Öğrenci Numarası"}:
+                </span>
                 <span>{user.student_number}</span>
               </div>
               <div className="flex items-center gap-3 text-gray-600">
@@ -193,11 +211,14 @@ export default function ProfilePage() {
                 <span className="font-medium">Soyad:</span>
                 <span>{user.surname}</span>
               </div>
-              <div className="flex items-center gap-3 text-gray-600">
-                <FaGraduationCap className="w-5 h-5" />
-                <span className="font-medium">Sınıf:</span>
-                <span>{user.student_class}. Sınıf</span>
-              </div>
+              {/* Sınıf bilgisi sadece öğrenci için gösterilsin */}
+              {!user.is_staff && (
+                <div className="flex items-center gap-3 text-gray-600">
+                  <FaGraduationCap className="w-5 h-5" />
+                  <span className="font-medium">Sınıf:</span>
+                  <span>{user.student_class}. Sınıf</span>
+                </div>
+              )}
             </div>
 
             <Form {...emailForm}>
@@ -229,7 +250,13 @@ export default function ProfilePage() {
                 )}
 
                 {success && (
-                  <Alert className="bg-green-50 text-green-800 border-green-200">
+                  <Alert
+                    className={`${
+                      user.is_staff
+                        ? "bg-blue-50 text-blue-800 border-blue-200"
+                        : "bg-green-50 text-green-800 border-green-200"
+                    }`}
+                  >
                     <AlertDescription>{success}</AlertDescription>
                   </Alert>
                 )}
@@ -237,7 +264,11 @@ export default function ProfilePage() {
                 <Button
                   type="submit"
                   disabled={loading}
-                  className="w-full bg-green-600 hover:bg-green-700 text-white cursor-pointer"
+                  className={`w-full ${
+                    user.is_staff
+                      ? "bg-blue-600 hover:bg-blue-700"
+                      : "bg-green-600 hover:bg-green-700"
+                  } text-white cursor-pointer`}
                 >
                   {loading ? "Güncelleniyor..." : "E-posta Adresini Güncelle"}
                 </Button>
@@ -247,7 +278,11 @@ export default function ProfilePage() {
 
           <div className="mt-8 bg-white rounded-xl shadow-sm p-6 sm:p-8">
             <div className="text-center mb-6">
-              <h3 className="text-2xl font-bold text-green-700">
+              <h3
+                className={`text-2xl font-bold ${
+                  user.is_staff ? "text-blue-700" : "text-green-700"
+                }`}
+              >
                 Şifre Değiştir
               </h3>
               <p className="mt-2 text-gray-600">
@@ -330,7 +365,13 @@ export default function ProfilePage() {
                 )}
 
                 {passwordSuccess && (
-                  <Alert className="bg-green-50 text-green-800 border-green-200">
+                  <Alert
+                    className={`${
+                      user.is_staff
+                        ? "bg-blue-50 text-blue-800 border-blue-200"
+                        : "bg-green-50 text-green-800 border-green-200"
+                    }`}
+                  >
                     <AlertDescription>{passwordSuccess}</AlertDescription>
                   </Alert>
                 )}
@@ -338,7 +379,11 @@ export default function ProfilePage() {
                 <Button
                   type="submit"
                   disabled={passwordLoading}
-                  className="w-full bg-green-600 hover:bg-green-700 text-white cursor-pointer"
+                  className={`w-full ${
+                    user.is_staff
+                      ? "bg-blue-600 hover:bg-blue-700"
+                      : "bg-green-600 hover:bg-green-700"
+                  } text-white cursor-pointer`}
                 >
                   {passwordLoading ? "Değiştiriliyor..." : "Şifreyi Değiştir"}
                 </Button>
