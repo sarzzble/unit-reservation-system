@@ -7,6 +7,8 @@ import Link from "next/link";
 import Image from "next/image";
 import { FiMenu, FiX } from "react-icons/fi";
 import { useRouter } from "next/navigation";
+import { FaUser } from "react-icons/fa";
+import { LuCalendarClock } from "react-icons/lu";
 
 export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -96,15 +98,17 @@ export default function Navbar() {
             {!isTeacher && (
               <Link
                 href="/my-reservations"
-                className="text-gray-800 hover:opacity-80 transition-opacity px-3 py-2 rounded-md text-sm font-medium"
+                className="flex items-center gap-2 text-gray-800 hover:opacity-80 transition-opacity px-3 py-2 rounded-md text-sm font-medium"
               >
+                <LuCalendarClock className="w-4 h-4" />
                 Rezervasyonlarım
               </Link>
             )}
             <Link
               href="/profile"
-              className="text-gray-800 hover:opacity-80 transition-opacity px-3 py-2 rounded-md text-sm font-medium"
+              className="flex items-center gap-2 text-gray-800 hover:opacity-80 transition-opacity px-3 py-2 rounded-md text-sm font-medium"
             >
+              <FaUser className="w-4 h-4" />
               Profilim
             </Link>
             <button
@@ -125,17 +129,19 @@ export default function Navbar() {
             {!isTeacher && (
               <Link
                 href="/my-reservations"
-                className="block text-gray-800 px-4 py-2 text-sm"
+                className="flex items-center gap-2 text-gray-800 px-4 py-2 text-sm"
                 onClick={() => setIsMenuOpen(false)}
               >
+                <LuCalendarClock className="w-4 h-4" />
                 Rezervasyonlarım
               </Link>
             )}
             <Link
               href="/profile"
-              className="block text-gray-800 px-4 py-2 text-sm"
+              className="flex items-center gap-2 text-gray-800 px-4 py-2 text-sm"
               onClick={() => setIsMenuOpen(false)}
             >
+              <FaUser className="w-4 h-4" />
               Profilim
             </Link>
             <button
