@@ -151,12 +151,31 @@ class TeacherReservationsView(APIView):
         # Query parametresinden student_number alınır
         student_number = request.query_params.get("student_number", None)
 
-        if student_number:
-            reservations = Reservation.objects.filter(user__student_number=student_number).order_by("-date", "-time_slot")
-        else:
-            reservations = Reservation.objects.all().order_by("-date", "-time_slot")
+        # Şu anki tarih ve saat
+        now = datetime.now()
+        today = now.date()
+        current_time = now.time()
 
-        serializer = TeacherReservationSerializer(reservations, many=True)
+        if student_number:
+            reservations = Reservation.objects.filter(user__student_number=student_number)
+        else:
+            reservations = Reservation.objects.all()
+
+        # Geçmiş tarihli ve bugünün geçmiş saatli rezervasyonları filtrele
+        filtered_reservations = []
+        for res in reservations:
+            if res.date < today:
+                continue
+            if res.date == today:
+                slot_start = res.time_slot.split("-")[0]
+                slot_hour, slot_minute = map(int, slot_start.split(":"))
+                slot_time = datetime.combine(today, datetime.min.time()).replace(hour=slot_hour, minute=slot_minute).time()
+                if slot_time <= current_time:
+                    continue
+            filtered_reservations.append(res)
+
+        filtered_reservations = sorted(filtered_reservations, key=lambda r: (r.date, r.time_slot))
+        serializer = TeacherReservationSerializer(filtered_reservations, many=True)
         return Response(serializer.data)
     
 class TeacherStudentListView(generics.ListAPIView):
@@ -221,10 +240,11 @@ class CancelReservationAPIView(APIView):
     permission_classes = [IsAuthenticated]
 
     def delete(self, request, pk):
-        try:
+        # Silme işlemi için öğretmen tüm rezervasyonları, öğrenci ise sadece kendi rezervasyonunu silebilir
+        if request.user.is_staff:
+            reservation = Reservation.objects.get(pk=pk)
+        else:
             reservation = Reservation.objects.get(pk=pk, user=request.user)
-        except Reservation.DoesNotExist:
-            return Response({"error": "Rezervasyon bulunamadı."}, status=status.HTTP_404_NOT_FOUND)
 
         today = date.today()
         

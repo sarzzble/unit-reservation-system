@@ -17,6 +17,14 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
 import { getReservations, cancelReservation, getUserInfo } from "@/lib/api";
 import { TeacherReservation } from "@/interfaces";
 import Navbar from "@/components/Navbar";
@@ -26,25 +34,32 @@ export default function TeacherUnitsPage() {
   const [reservations, setReservations] = useState<TeacherReservation[]>([]);
   const [error, setError] = useState<string>("");
   const [loading, setLoading] = useState(true);
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+  const [selectedReservationId, setSelectedReservationId] = useState<
+    number | null
+  >(null);
 
   useEffect(() => {
     const fetchUserAndReservations = async () => {
       try {
         // Kullanıcı bilgilerini al
         const userData = await getUserInfo();
-        
+
         // Eğer öğretmen değilse ana sayfaya yönlendir
         if (!userData.is_staff) {
           router.push("/");
           return;
         }
-        
+
         // Rezervasyonları getir
         const reservationsData = await getReservations();
         setReservations(reservationsData);
       } catch (error) {
         if (error instanceof AxiosError) {
-          if (error.response?.status === 401 || error.response?.status === 403) {
+          if (
+            error.response?.status === 401 ||
+            error.response?.status === 403
+          ) {
             router.push("/");
             return;
           }
@@ -61,18 +76,19 @@ export default function TeacherUnitsPage() {
   }, [router]);
 
   const handleDeleteReservation = async (id: number) => {
-    if (window.confirm("Bu rezervasyonu silmek istediğinize emin misiniz?")) {
-      try {
-        await cancelReservation(id);
-        // Rezervasyonları yeniden yükle
-        const data = await getReservations();
-        setReservations(data);
-      } catch (error) {
-        if (error instanceof AxiosError) {
-          setError(error.response?.data?.error || "Rezervasyon silinirken bir hata oluştu");
-        } else {
-          setError("Rezervasyon silinirken bir hata oluştu");
-        }
+    try {
+      await cancelReservation(id);
+      // Rezervasyonları yeniden yükle
+      const data = await getReservations();
+      setReservations(data);
+    } catch (error) {
+      if (error instanceof AxiosError) {
+        setError(
+          error.response?.data?.error ||
+            "Rezervasyon silinirken bir hata oluştu"
+        );
+      } else {
+        setError("Rezervasyon silinirken bir hata oluştu");
       }
     }
   };
@@ -95,9 +111,7 @@ export default function TeacherUnitsPage() {
               <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">
                 Ünit Rezervasyonları
               </h1>
-              <p className="text-gray-600 mt-1">
-                Tüm öğrenci rezervasyonları
-              </p>
+              <p className="text-gray-600 mt-1">Tüm öğrenci rezervasyonları</p>
             </div>
           </div>
 
@@ -136,16 +150,19 @@ export default function TeacherUnitsPage() {
                         ({reservation.user.student_number})
                       </span>
                     </TableCell>
-                    <TableCell>{reservation.user.student_class}. Sınıf</TableCell>
+                    <TableCell>
+                      {reservation.user.student_class}. Sınıf
+                    </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-2">
                         <Button
-                          onClick={() =>
-                            handleDeleteReservation(reservation.id)
-                          }
+                          onClick={() => {
+                            setSelectedReservationId(reservation.id);
+                            setShowConfirmDialog(true);
+                          }}
                           variant="ghost"
                           size="sm"
-                          className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                          className="text-red-600 hover:text-red-700 hover:bg-red-50 cursor-pointer"
                         >
                           <FaTrash className="w-4 h-4" />
                         </Button>
@@ -156,7 +173,9 @@ export default function TeacherUnitsPage() {
                 {reservations.length === 0 && (
                   <TableRow>
                     <TableCell colSpan={6} className="text-center py-8">
-                      <p className="text-gray-500">Henüz rezervasyon yapılmamış</p>
+                      <p className="text-gray-500">
+                        Henüz rezervasyon yapılmamış
+                      </p>
                     </TableCell>
                   </TableRow>
                 )}
@@ -165,6 +184,37 @@ export default function TeacherUnitsPage() {
           </div>
         </div>
       </div>
+      <Dialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Rezervasyon Sil</DialogTitle>
+            <DialogDescription>
+              Silmek istediğinize emin misiniz?
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setShowConfirmDialog(false)}
+              className="cursor-pointer"
+            >
+              Vazgeç
+            </Button>
+            <Button
+              onClick={async () => {
+                if (selectedReservationId) {
+                  await handleDeleteReservation(selectedReservationId);
+                  setShowConfirmDialog(false);
+                  setSelectedReservationId(null);
+                }
+              }}
+              className="bg-red-600 hover:bg-red-700 cursor-pointer"
+            >
+              Sil
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   );
-} 
+}
