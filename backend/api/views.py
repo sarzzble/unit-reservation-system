@@ -374,6 +374,35 @@ class StudentMessagesView(APIView):
             deleted, _ = Message.objects.filter(user=user).delete()
             return Response({"message": f"{deleted} mesaj silindi."}, status=200)
 
+class DutyTeacherByDateView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request):
+        date_str = request.query_params.get("date")
+        if not date_str:
+            return Response({"error": "Tarih parametresi gerekli (YYYY-MM-DD)."}, status=400)
+        try:
+            target_date = datetime.strptime(date_str, "%Y-%m-%d").date()
+        except ValueError:
+            return Response({"error": "Tarih formatı YYYY-MM-DD olmalı."}, status=400)
+
+        weekday = target_date.weekday()
+        if weekday > 4:
+            return Response({"error": "Hafta sonu için nöbetçi öğretmen yok."}, status=400)
+
+        # Hangi gün ise o günün alanında bu tarih olan kaydı bul
+        day_field = ["monday", "tuesday", "wednesday", "thursday", "friday"][weekday]
+        filter_kwargs = {day_field: date_str}
+        duty = DutySchedule.objects.filter(**filter_kwargs).first()
+        if not duty:
+            return Response({"error": "Nöbetçi öğretmen bulunamadı."}, status=404)
+        teacher = duty.teacher
+        return Response({
+            "first_name": teacher.first_name,
+            "last_name": teacher.last_name,
+            "email": teacher.email
+        })
+
 
 
 

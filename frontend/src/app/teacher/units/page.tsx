@@ -25,7 +25,11 @@ import {
   DialogDescription,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { getReservations, cancelReservation } from "@/lib/api";
+import {
+  getReservations,
+  cancelReservation,
+  getDutyTeacherByDate,
+} from "@/lib/api";
 import { TeacherReservation } from "@/interfaces";
 import Navbar from "@/components/Navbar";
 import { Input } from "@/components/ui/input";
@@ -44,6 +48,8 @@ export default function TeacherUnitsPage() {
   const [searchStudentNumber, setSearchStudentNumber] = useState("");
   const [searchLoading, setSearchLoading] = useState(false);
   const [searchedStudentName, setSearchedStudentName] = useState<string>("");
+  const [isDutyToday, setIsDutyToday] = useState(false);
+  const [dutyTeacherName, setDutyTeacherName] = useState<string>("");
 
   useEffect(() => {
     if (userLoading) return;
@@ -75,6 +81,28 @@ export default function TeacherUnitsPage() {
     };
     fetchReservations();
   }, [router, user, userLoading]);
+
+  useEffect(() => {
+    if (!user || !user.is_staff) return;
+    const checkDuty = async () => {
+      const today = new Date();
+      const formatted = format(today, "yyyy-MM-dd");
+      try {
+        const duty = await getDutyTeacherByDate(formatted);
+        if (duty.email === user.email) {
+          setIsDutyToday(true);
+          setDutyTeacherName(`${duty.first_name} ${duty.last_name}`);
+        } else {
+          setIsDutyToday(false);
+          setDutyTeacherName("");
+        }
+      } catch {
+        setIsDutyToday(false);
+        setDutyTeacherName("");
+      }
+    };
+    checkDuty();
+  }, [user]);
 
   const handleDeleteReservation = async (id: number) => {
     try {
@@ -134,6 +162,15 @@ export default function TeacherUnitsPage() {
       <Navbar />
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-blue-100 p-4 sm:p-6 lg:p-8">
         <div className="max-w-7xl mx-auto">
+          {/* Nöbetçi öğretmen uyarısı: başlık ve filtrelerin hemen altında, sayfanın üst-orta kısmında */}
+          {isDutyToday && dutyTeacherName && (
+            <div className="flex justify-center mb-4">
+              <span className="animate-pulse bg-yellow-200 text-yellow-900 px-4 py-1 rounded font-semibold text-xs shadow border border-yellow-400">
+                BUGÜN NÖBETÇİSİNİZ
+              </span>
+            </div>
+          )}
+
           <div className="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4">
             <div>
               <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">

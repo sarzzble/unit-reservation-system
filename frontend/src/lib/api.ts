@@ -258,4 +258,13 @@ export const patchMessageRead = async (id: number) => {
   }
 };
 
+export const getDutyTeacherByDate = async (date: string) => {
+  try {
+    const response = await api.get("/duty-teacher/", { params: { date } });
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
 export default api;

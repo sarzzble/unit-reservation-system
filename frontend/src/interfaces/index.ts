@@ -31,3 +31,9 @@ export interface Unit {
   reserved_time_slots: string[];
   available_time_slots: string[];
 }
+
+export interface DutyTeacher {
+  first_name: string;
+  last_name: string;
+  email: string;
+}

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { getUnits, makeReservation } from "@/lib/api";
+import { getUnits, makeReservation, getDutyTeacherByDate } from "@/lib/api";
 import { AxiosError } from "axios";
 import Navbar from "@/components/Navbar";
 import { useRouter } from "next/navigation";
@@ -25,7 +25,7 @@ import { format } from "date-fns";
 import { tr } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { FaTooth } from "react-icons/fa";
-import { Unit } from "@/interfaces";
+import { Unit, DutyTeacher } from "@/interfaces";
 
 export default function UnitsPage() {
   const router = useRouter();
@@ -37,6 +37,8 @@ export default function UnitsPage() {
   const [isSearching, setIsSearching] = useState(false);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [selectedTimeSlot, setSelectedTimeSlot] = useState<string | null>(null);
+  const [dutyTeacher, setDutyTeacher] = useState<DutyTeacher | null>(null);
+  const [dutyTeacherError, setDutyTeacherError] = useState("");
 
   const isTimeSlotPassed = (timeSlot: string) => {
     if (!date) return false;
@@ -83,9 +85,36 @@ export default function UnitsPage() {
     }
   };
 
+  const fetchDutyTeacher = async (selected: Date) => {
+    setDutyTeacher(null);
+    setDutyTeacherError("");
+    if (!selected) return;
+    try {
+      const formattedDate = format(selected, "yyyy-MM-dd");
+      const data = await getDutyTeacherByDate(formattedDate);
+      setDutyTeacher(data);
+    } catch (err) {
+      if (err instanceof AxiosError) {
+        setDutyTeacher(null);
+        setDutyTeacherError(
+          err.response?.data?.error || "Nöbetçi öğretmen bilgisi alınamadı"
+        );
+      } else {
+        setDutyTeacher(null);
+        setDutyTeacherError("Nöbetçi öğretmen bilgisi alınamadı");
+      }
+    }
+  };
+
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     fetchUnits();
+    if (date) {
+      fetchDutyTeacher(date);
+    } else {
+      setDutyTeacher(null);
+      setDutyTeacherError("");
+    }
   };
 
   const handleTimeSlotClick = (unitId: number, timeSlot: string) => {
@@ -128,6 +157,14 @@ export default function UnitsPage() {
     setSelectedTimeSlot(null);
     setSelectedUnit(null);
     setShowConfirmDialog(false);
+  };
+
+  // Takvimde tarih seçildiğinde sadece tarihi güncelle
+  const handleDateChange = (selected: Date | undefined) => {
+    setDate(selected);
+    // Nöbetçi öğretmen API çağrısı kaldırıldı
+    setDutyTeacher(null);
+    setDutyTeacherError("");
   };
 
   return (
@@ -173,7 +210,7 @@ export default function UnitsPage() {
                   <Calendar
                     mode="single"
                     selected={date}
-                    onSelect={setDate}
+                    onSelect={handleDateChange}
                     disabled={(date) => {
                       const today = new Date();
                       today.setHours(0, 0, 0, 0);
@@ -198,6 +235,23 @@ export default function UnitsPage() {
                 {isSearching ? "Aranıyor..." : "Ara"}
               </Button>
             </form>
+            {/* Nöbetçi öğretmen bilgisi */}
+            {date && (
+              <div className="flex justify-center mb-4">
+                {dutyTeacherError ? (
+                  <span className="text-red-600 text-sm font-medium">
+                    {dutyTeacherError}
+                  </span>
+                ) : dutyTeacher ? (
+                  <span className="text-green-700 text-sm font-medium">
+                    {format(date, "PPP", { locale: tr })} günü nöbetçi öğretmen:{" "}
+                    <b>
+                      {dutyTeacher.first_name} {dutyTeacher.last_name}
+                    </b>
+                  </span>
+                ) : null}
+              </div>
+            )}
 
             {loading ? (
               <div className="flex justify-center">
