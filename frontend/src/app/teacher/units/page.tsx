@@ -25,13 +25,15 @@ import {
   DialogDescription,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { getReservations, cancelReservation, getUserInfo } from "@/lib/api";
+import { getReservations, cancelReservation } from "@/lib/api";
 import { TeacherReservation } from "@/interfaces";
 import Navbar from "@/components/Navbar";
 import { Input } from "@/components/ui/input";
+import { useUser } from "@/components/UserContext";
 
 export default function TeacherUnitsPage() {
   const router = useRouter();
+  const { user, loading: userLoading } = useUser();
   const [reservations, setReservations] = useState<TeacherReservation[]>([]);
   const [error, setError] = useState<string>("");
   const [loading, setLoading] = useState(true);
@@ -44,18 +46,14 @@ export default function TeacherUnitsPage() {
   const [searchedStudentName, setSearchedStudentName] = useState<string>("");
 
   useEffect(() => {
-    const fetchUserAndReservations = async () => {
+    if (userLoading) return;
+    if (!user) return;
+    if (!user.is_staff) {
+      router.push("/");
+      return;
+    }
+    const fetchReservations = async () => {
       try {
-        // Kullanıcı bilgilerini al
-        const userData = await getUserInfo();
-
-        // Eğer öğretmen değilse ana sayfaya yönlendir
-        if (!userData.is_staff) {
-          router.push("/");
-          return;
-        }
-
-        // Rezervasyonları getir
         const reservationsData = await getReservations();
         setReservations(reservationsData);
       } catch (error) {
@@ -75,9 +73,8 @@ export default function TeacherUnitsPage() {
         setLoading(false);
       }
     };
-
-    fetchUserAndReservations();
-  }, [router]);
+    fetchReservations();
+  }, [router, user, userLoading]);
 
   const handleDeleteReservation = async (id: number) => {
     try {

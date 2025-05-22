@@ -1,10 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { updateUser, getUserInfo, changePassword } from "@/lib/api";
+import { updateUser, changePassword, getUserInfo } from "@/lib/api";
 import { AxiosError } from "axios";
 import Navbar from "@/components/Navbar";
-import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -27,14 +26,13 @@ import {
   FaLock,
 } from "react-icons/fa";
 import { EmailSchema, PasswordSchema } from "@/schemas";
-import { User } from "@/interfaces";
+import { useUser } from "@/components/UserContext";
 
 type EmailFormData = z.infer<typeof EmailSchema>;
 type PasswordFormData = z.infer<typeof PasswordSchema>;
 
 export default function ProfilePage() {
-  const router = useRouter();
-  const [user, setUser] = useState<User | null>(null);
+  const { user, setUser, loading: userLoading, error: userError } = useUser();
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
@@ -60,37 +58,25 @@ export default function ProfilePage() {
   });
 
   useEffect(() => {
-    const fetchUserData = async () => {
-      try {
-        const userData = await getUserInfo();
-        setUser(userData);
-        emailForm.reset({
-          email: userData.email,
-        });
-      } catch (err) {
-        if (err instanceof AxiosError && err.response?.status === 401) {
-          // Token geçersiz veya süresi dolmuş
-          router.push("/login");
-        } else {
-          setError("Kullanıcı bilgileri yüklenirken bir hata oluştu");
-        }
-      } finally {
-        setInitialLoading(false);
-      }
-    };
-
-    fetchUserData();
-  }, [emailForm, router]);
+    if (userLoading) return;
+    if (userError) {
+      setError(userError);
+      setInitialLoading(false);
+      return;
+    }
+    if (user) {
+      emailForm.reset({ email: user.email });
+      setInitialLoading(false);
+    }
+  }, [user, userLoading, userError, emailForm]);
 
   const onSubmit = async (data: EmailFormData) => {
     setError("");
     setSuccess("");
     setLoading(true);
-
     try {
       await updateUser({ email: data.email });
       setSuccess("E-posta adresiniz başarıyla güncellendi.");
-
       // Güncel kullanıcı bilgilerini backend'den tekrar çek
       const updatedUserData = await getUserInfo();
       setUser(updatedUserData);

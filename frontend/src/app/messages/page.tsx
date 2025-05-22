@@ -1,14 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import Navbar from "@/components/Navbar";
-import {
-  getMessages,
-  getUserInfo,
-  deleteMessage,
-  deleteAllMessages,
-} from "@/lib/api";
 import { FaTrash } from "react-icons/fa";
 import {
   Dialog,
@@ -19,40 +13,17 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-
-interface Message {
-  id: number;
-  title: string;
-  content: string;
-  created_at: string;
-  is_read: boolean;
-}
+import { useUser } from "@/components/UserContext";
+import { useMessages } from "@/components/MessagesContext";
 
 export default function MessagesPage() {
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
-  const [isTeacher, setIsTeacher] = useState(false);
+  const { messages, loading, error, removeMessage, removeAll } = useMessages();
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [selectedMessageId, setSelectedMessageId] = useState<number | null>(
     null
   );
-
-  useEffect(() => {
-    const fetchMessages = async () => {
-      try {
-        const user = await getUserInfo();
-        setIsTeacher(user.is_staff);
-        const data = await getMessages();
-        setMessages(data);
-      } catch {
-        setError("Mesajlar yüklenirken bir hata oluştu.");
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchMessages();
-  }, []);
+  const { user } = useUser();
+  const isTeacher = user?.is_staff ?? false;
 
   const handleDelete = async (id: number) => {
     setSelectedMessageId(id);
@@ -62,26 +33,17 @@ export default function MessagesPage() {
   const confirmDelete = async () => {
     if (selectedMessageId !== null) {
       try {
-        await deleteMessage(selectedMessageId);
-        setMessages((prev) =>
-          prev.filter((msg) => msg.id !== selectedMessageId)
-        );
-      } catch {
-        setError("Mesaj silinirken bir hata oluştu.");
-      } finally {
-        setShowConfirmDialog(false);
-        setSelectedMessageId(null);
-      }
+        await removeMessage(selectedMessageId);
+      } catch {}
+      setShowConfirmDialog(false);
+      setSelectedMessageId(null);
     }
   };
 
   const handleDeleteAll = async () => {
     try {
-      await deleteAllMessages();
-      setMessages([]);
-    } catch {
-      setError("Tüm mesajlar silinirken bir hata oluştu.");
-    }
+      await removeAll();
+    } catch {}
   };
 
   return (
@@ -127,22 +89,18 @@ export default function MessagesPage() {
             {messages.map((msg) => (
               <div
                 key={msg.id}
-                className={`bg-white rounded-lg shadow p-4 border flex justify-between items-center ${
-                  isTeacher ? "border-blue-100" : "border-green-100"
-                }`}
+                className="bg-white rounded-lg shadow p-4 border flex justify-between items-center border-green-100"
               >
                 <div>
-                  <div
-                    className={`font-semibold ${
-                      isTeacher ? "text-blue-700" : "text-green-700"
-                    }`}
-                  >
+                  <span className="font-semibold text-green-700 mb-2 block">
                     {msg.title}
-                  </div>
-                  <div className="text-gray-700 mt-1">{msg.content}</div>
-                  <div className="text-xs text-gray-400 mt-2">
+                  </span>
+                  <span className="text-gray-700 mb-2 block">
+                    {msg.content}
+                  </span>
+                  <span className="text-xs text-gray-400 mt-2 block">
                     {new Date(msg.created_at).toLocaleString("tr-TR")}
-                  </div>
+                  </span>
                 </div>
                 <Button
                   onClick={() => handleDelete(msg.id)}

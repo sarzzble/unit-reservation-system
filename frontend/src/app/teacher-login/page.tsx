@@ -6,7 +6,7 @@ import Image from "next/image";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
-import { FaChalkboardTeacher, FaLock } from "react-icons/fa";
+import { FaChalkboardTeacher, FaLock, FaTooth } from "react-icons/fa";
 import { AxiosError } from "axios";
 import Link from "next/link";
 
@@ -21,7 +21,13 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardFooter,
+} from "@/components/ui/card";
 import { login } from "@/lib/api";
 import { setCookie } from "@/lib/auth";
 import { LoginSchema } from "@/schemas";
@@ -45,7 +51,11 @@ function TeacherLoginForm() {
     setLoading(true);
 
     try {
-      const response = await login(values.student_number, values.password, true); // is_staff true olarak gönderiliyor
+      const response = await login(
+        values.student_number,
+        values.password,
+        true
+      ); // is_staff true olarak gönderiliyor
 
       // Token'ları cookie'ye kaydet
       setCookie("access_token", response.access, 1);
@@ -77,7 +87,7 @@ function TeacherLoginForm() {
         <div className="absolute inset-0 grid grid-cols-12 gap-4 p-4">
           {Array.from({ length: 144 }).map((_, i) => (
             <div key={i} className="flex items-center justify-center">
-              <FaChalkboardTeacher className="w-6 h-6 text-blue-600" />
+              <FaTooth className="w-6 h-6 text-blue-600" />
             </div>
           ))}
         </div>
@@ -199,4 +209,4 @@ export default function TeacherLoginPage() {
       <TeacherLoginForm />
     </Suspense>
   );
-} 
+}

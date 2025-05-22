@@ -346,6 +346,21 @@ class StudentMessagesView(APIView):
         serializer = MessageSerializer(messages, many=True)
         return Response(serializer.data)
 
+    def patch(self, request, pk=None):
+        user = request.user
+        if not pk:
+            return Response({"error": "Mesaj ID gerekli."}, status=400)
+        try:
+            msg = Message.objects.get(pk=pk, user=user)
+        except Message.DoesNotExist:
+            return Response({"error": "Mesaj bulunamadı."}, status=404)
+        is_read = request.data.get("is_read")
+        if is_read is not None:
+            msg.is_read = bool(is_read)
+            msg.save()
+            return Response({"message": "Mesaj okundu olarak işaretlendi."})
+        return Response({"error": "is_read alanı gerekli."}, status=400)
+
     def delete(self, request, pk=None):
         user = request.user
         if pk:

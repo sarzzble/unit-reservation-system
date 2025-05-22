@@ -249,4 +249,13 @@ export const deleteAllMessages = async () => {
   }
 };
 
+export const patchMessageRead = async (id: number) => {
+  try {
+    const response = await api.patch(`/messages/${id}/`, { is_read: true });
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
 export default api;

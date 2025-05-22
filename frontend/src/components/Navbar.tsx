@@ -2,32 +2,20 @@
 
 import { useState, useRef, useEffect } from "react";
 import { logout } from "@/lib/auth";
-import { getUserInfo } from "@/lib/api";
 import Link from "next/link";
 import Image from "next/image";
 import { FiMenu, FiX } from "react-icons/fi";
 import { useRouter } from "next/navigation";
 import { FaUser, FaRegEnvelope } from "react-icons/fa";
 import { LuCalendarClock } from "react-icons/lu";
+import { useUser } from "@/components/UserContext";
 
 export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [isTeacher, setIsTeacher] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
-
-  useEffect(() => {
-    const fetchUserInfo = async () => {
-      try {
-        const user = await getUserInfo();
-        setIsTeacher(user.is_staff);
-      } catch (error) {
-        console.error("Error fetching user info:", error);
-      }
-    };
-
-    fetchUserInfo();
-  }, []);
+  const { user } = useUser();
+  const isTeacher = user?.is_staff ?? false;
 
   const handleLogout = () => {
     try {

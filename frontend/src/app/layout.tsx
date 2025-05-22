@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import { UserProvider } from "@/components/UserContext";
+import MessageModalProvider from "@/components/MessageModalProvider";
+import { MessagesProvider } from "@/components/MessagesContext";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -22,12 +25,35 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // Sunucu tarafı için pathname ve cookie kontrolü
+  const pathname =
+    typeof window === "undefined" ? "" : window.location.pathname;
+  const isPublic =
+    pathname.startsWith("/login") || pathname.startsWith("/register");
+  // Eğer public sayfa ise provider'lar olmadan render et
+  if (isPublic) {
+    return (
+      <html lang="en">
+        <body
+          className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        >
+          {children}
+        </body>
+      </html>
+    );
+  }
+  // Diğer tüm sayfalarda provider'lar ile sarmala
   return (
     <html lang="en">
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        {children}
+        <UserProvider>
+          <MessagesProvider>
+            {children}
+            <MessageModalProvider />
+          </MessagesProvider>
+        </UserProvider>
       </body>
     </html>
   );
