@@ -33,6 +33,7 @@ export default function UnitsPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [date, setDate] = useState<Date>();
+  const [selectedDate, setSelectedDate] = useState<Date>();
   const [selectedUnit, setSelectedUnit] = useState<number | null>(null);
   const [isSearching, setIsSearching] = useState(false);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
@@ -60,18 +61,29 @@ export default function UnitsPage() {
     return today > slotTime;
   };
 
-  const fetchUnits = async () => {
-    if (!date) return;
-
+  // Takvimde tarih seçildiğinde sadece selectedDate güncellenir
+  const handleSearch = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
     setLoading(true);
     setIsSearching(true);
-    setError("");
-
     try {
-      const formattedDate = format(date, "yyyy-MM-dd");
-      const data = await getUnits(formattedDate);
-      setUnits(data);
+      if (selectedDate) {
+        const formattedDate = format(selectedDate, "yyyy-MM-dd");
+        const data = await getUnits(formattedDate);
+        setUnits(data);
+        setDate(selectedDate); // Asıl date'i güncelle
+        const duty = await getDutyTeacherByDate(formattedDate);
+        setDutyTeacher(duty);
+        setDutyTeacherError("");
+      } else {
+        setUnits([]);
+        setDutyTeacher(null);
+        setDutyTeacherError("");
+      }
     } catch (err) {
+      setUnits([]);
+      setDutyTeacher(null);
       if (err instanceof AxiosError) {
         setError(
           err.response?.data?.error || "Ünitler yüklenirken bir hata oluştu"
@@ -82,38 +94,6 @@ export default function UnitsPage() {
     } finally {
       setLoading(false);
       setIsSearching(false);
-    }
-  };
-
-  const fetchDutyTeacher = async (selected: Date) => {
-    setDutyTeacher(null);
-    setDutyTeacherError("");
-    if (!selected) return;
-    try {
-      const formattedDate = format(selected, "yyyy-MM-dd");
-      const data = await getDutyTeacherByDate(formattedDate);
-      setDutyTeacher(data);
-    } catch (err) {
-      if (err instanceof AxiosError) {
-        setDutyTeacher(null);
-        setDutyTeacherError(
-          err.response?.data?.error || "Nöbetçi öğretmen bilgisi alınamadı"
-        );
-      } else {
-        setDutyTeacher(null);
-        setDutyTeacherError("Nöbetçi öğretmen bilgisi alınamadı");
-      }
-    }
-  };
-
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    fetchUnits();
-    if (date) {
-      fetchDutyTeacher(date);
-    } else {
-      setDutyTeacher(null);
-      setDutyTeacherError("");
     }
   };
 
@@ -159,14 +139,6 @@ export default function UnitsPage() {
     setShowConfirmDialog(false);
   };
 
-  // Takvimde tarih seçildiğinde sadece tarihi güncelle
-  const handleDateChange = (selected: Date | undefined) => {
-    setDate(selected);
-    // Nöbetçi öğretmen API çağrısı kaldırıldı
-    setDutyTeacher(null);
-    setDutyTeacherError("");
-  };
-
   return (
     <>
       <Navbar />
@@ -192,12 +164,12 @@ export default function UnitsPage() {
                     variant={"outline"}
                     className={cn(
                       "w-[240px] justify-start text-left font-normal cursor-pointer bg-white/90 backdrop-blur-sm hover:bg-white transition-colors shadow-sm",
-                      !date && "text-muted-foreground"
+                      !selectedDate && "text-muted-foreground"
                     )}
                   >
                     <CalendarIcon className="mr-2 h-4 w-4" />
-                    {date ? (
-                      format(date, "PPP", { locale: tr })
+                    {selectedDate ? (
+                      format(selectedDate, "PPP", { locale: tr })
                     ) : (
                       <span>Tarih seçin</span>
                     )}
@@ -209,16 +181,14 @@ export default function UnitsPage() {
                 >
                   <Calendar
                     mode="single"
-                    selected={date}
-                    onSelect={handleDateChange}
+                    selected={selectedDate}
+                    onSelect={setSelectedDate}
                     disabled={(date) => {
                       const today = new Date();
                       today.setHours(0, 0, 0, 0);
-
                       const isPast = date < today;
                       const isWeekend =
-                        date.getDay() === 0 || date.getDay() === 6; // 0: Pazar, 6: Cumartesi
-
+                        date.getDay() === 0 || date.getDay() === 6;
                       return isPast || isWeekend;
                     }}
                     locale={tr}
@@ -229,7 +199,7 @@ export default function UnitsPage() {
               </Popover>
               <Button
                 type="submit"
-                disabled={isSearching || !date}
+                disabled={isSearching || !selectedDate}
                 className="bg-green-600 hover:bg-green-700 text-white shadow-sm cursor-pointer"
               >
                 {isSearching ? "Aranıyor..." : "Ara"}

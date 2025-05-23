@@ -31,7 +31,6 @@ import { Reservation } from "@/interfaces";
 
 export default function MyReservationsPage() {
   const router = useRouter();
-  const [reservations, setReservations] = useState<Reservation[]>([]);
   const [loading, setLoading] = useState(true);
   const [fetchError, setFetchError] = useState("");
   const [modalError, setModalError] = useState("");
@@ -42,19 +41,20 @@ export default function MyReservationsPage() {
   const [deleteSingleLoading, setDeleteSingleLoading] = useState<number | null>(
     null
   );
-
-  // Aktif ve geçmiş rezervasyonları ayır
-  const activeReservations = reservations.filter(
-    (reservation) => new Date(reservation.date) >= new Date()
-  );
-  const pastReservations = reservations.filter(
-    (reservation) => new Date(reservation.date) < new Date()
-  );
+  const [activeReservations, setActiveReservations] = useState<Reservation[]>([]);
+  const [pastReservations, setPastReservations] = useState<Reservation[]>([]);
 
   const fetchReservations = async () => {
     try {
       const data = await getMyReservations();
-      setReservations(Array.isArray(data) ? data : []);
+      // Beklenen format: { active: [...], past: [...] }
+      if (data && typeof data === "object" && "active" in data && "past" in data) {
+        setActiveReservations(Array.isArray(data.active) ? data.active : []);
+        setPastReservations(Array.isArray(data.past) ? data.past : []);
+      } else {
+        setActiveReservations([]);
+        setPastReservations([]);
+      }
     } catch (err) {
       if (err instanceof AxiosError) {
         setFetchError(
@@ -197,7 +197,7 @@ export default function MyReservationsPage() {
           >
             <AccordionItem value="active" className="px-4">
               <AccordionTrigger className="text-lg font-semibold text-green-700 hover:no-underline cursor-pointer">
-                Rezervasyonlarım
+                Aktif Rezervasyonlarım
               </AccordionTrigger>
               <AccordionContent>
                 <div className="flex flex-col gap-4 py-4">

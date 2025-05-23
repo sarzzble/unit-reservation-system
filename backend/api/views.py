@@ -139,8 +139,31 @@ class MyReservationsView(APIView):
 
     def get(self, request):
         reservations = Reservation.objects.filter(user=request.user)
-        serializer = MyReservationSerializer(reservations, many=True)
-        return Response(serializer.data)
+        now = datetime.now()
+        today = now.date()
+        current_time = now.time()
+
+        active_reservations = []
+        past_reservations = []
+
+        for res in reservations:
+            if res.date < today:
+                past_reservations.append(res)
+            elif res.date > today:
+                active_reservations.append(res)
+            else:  # res.date == today
+                slot_end = res.time_slot.split("-")[1]
+                end_hour, end_minute = map(int, slot_end.split(":"))
+                slot_end_time = datetime.combine(today, datetime.min.time()).replace(hour=end_hour, minute=end_minute).time()
+                if current_time < slot_end_time:
+                    active_reservations.append(res)
+                else:
+                    past_reservations.append(res)
+
+        return Response({
+            "active": MyReservationSerializer(active_reservations, many=True).data,
+            "past": MyReservationSerializer(past_reservations, many=True).data,
+        })
 
 class TeacherReservationsView(APIView):
     permission_classes = [permissions.IsAuthenticated]
@@ -281,12 +304,23 @@ class DeletePastReservationsView(APIView):
 
     def delete(self, request, pk=None):
         today = date.today()
-        
+        now = datetime.now()
+        current_time = now.time()
+
         if pk:
             # Tek bir geçmiş rezervasyonu sil
             try:
                 reservation = Reservation.objects.get(pk=pk, user=request.user)
+                is_past = False
                 if reservation.date < today:
+                    is_past = True
+                elif reservation.date == today:
+                    slot_end = reservation.time_slot.split("-")[1]
+                    end_hour, end_minute = map(int, slot_end.split(":"))
+                    slot_end_time = datetime.combine(today, datetime.min.time()).replace(hour=end_hour, minute=end_minute).time()
+                    if current_time >= slot_end_time:
+                        is_past = True
+                if is_past:
                     reservation.delete()
                     return Response({"message": "Geçmiş rezervasyon başarıyla silindi."}, status=status.HTTP_204_NO_CONTENT)
                 return Response({"error": "Sadece geçmiş rezervasyonlar silinebilir."}, status=status.HTTP_400_BAD_REQUEST)
@@ -294,9 +328,23 @@ class DeletePastReservationsView(APIView):
                 return Response({"error": "Rezervasyon bulunamadı."}, status=status.HTTP_404_NOT_FOUND)
         else:
             # Tüm geçmiş rezervasyonları sil
-            past_reservations = Reservation.objects.filter(user=request.user, date__lt=today)
-            count = past_reservations.count()
-            past_reservations.delete()
+            past_reservations = []
+            reservations = Reservation.objects.filter(user=request.user)
+            for res in reservations:
+                is_past = False
+                if res.date < today:
+                    is_past = True
+                elif res.date == today:
+                    slot_end = res.time_slot.split("-")[1]
+                    end_hour, end_minute = map(int, slot_end.split(":"))
+                    slot_end_time = datetime.combine(today, datetime.min.time()).replace(hour=end_hour, minute=end_minute).time()
+                    if current_time >= slot_end_time:
+                        is_past = True
+                if is_past:
+                    past_reservations.append(res)
+            count = len(past_reservations)
+            for res in past_reservations:
+                res.delete()
             return Response({"message": f"{count} adet geçmiş rezervasyon başarıyla silindi."}, status=status.HTTP_200_OK)
 
 # Nöbetçi listesi (Admin ekler)

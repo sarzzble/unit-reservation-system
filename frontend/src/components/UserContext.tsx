@@ -20,8 +20,12 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    // Eğer access_token yoksa fetch başlatma
-    if (!getCookie("access_token")) return;
+    // Eğer access_token yoksa loading'i false yap!
+    if (!getCookie("access_token")) {
+      setUser(null);
+      setLoading(false);
+      return;
+    }
     const fetchUser = async () => {
       setLoading(true);
       setError("");
