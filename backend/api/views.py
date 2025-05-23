@@ -7,6 +7,7 @@ from .serializers import DutyScheduleSerializer, LoginSerializer, LogoutSerializ
 from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.tokens import RefreshToken
 from django_filters.rest_framework import DjangoFilterBackend 
+from django.db.models import Q
 
 # Kayıt olmav
 class RegisterView(APIView):
@@ -192,10 +193,15 @@ class TeacherStudentListView(generics.ListAPIView):
     ordering = ["first_name"]  # varsayılan sıralama
 
     def get_queryset(self):
-        if not self.request.user.is_staff:
-            return User.objects.none()  # Yetkisi olmayanlar için boş veri
-        return super().get_queryset()
-
+        queryset = super().get_queryset()
+        search = self.request.query_params.get("search", None)
+        if search:
+            queryset = queryset.filter(
+                Q(first_name__icontains=search) |
+                Q(last_name__icontains=search) |
+                Q(student_number__icontains=search)
+            )
+        return queryset
 
 # Rezervasyon yapma
 class MakeReservationView(APIView):

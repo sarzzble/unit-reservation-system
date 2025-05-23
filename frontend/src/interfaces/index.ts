@@ -37,3 +37,10 @@ export interface DutyTeacher {
   last_name: string;
   email: string;
 }
+
+export interface Student {
+  student_number: string;
+  first_name: string;
+  last_name: string;
+  student_class: string;
+}

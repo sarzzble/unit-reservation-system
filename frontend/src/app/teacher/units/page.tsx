@@ -6,6 +6,7 @@ import { format } from "date-fns";
 import { tr } from "date-fns/locale";
 import { FaUserGraduate, FaTrash, FaSearch } from "react-icons/fa";
 import { AxiosError } from "axios";
+import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -182,33 +183,43 @@ export default function TeacherUnitsPage() {
                   : "Tüm öğrenci rezervasyonları"}
               </p>
             </div>
-            <form onSubmit={handleSearch} className="flex items-center gap-2">
-              <div className="relative">
-                <Input
-                  type="text"
-                  inputMode="numeric"
-                  pattern="[0-9]*"
-                  maxLength={12}
-                  placeholder="Öğrenci Numarası"
-                  value={searchStudentNumber}
-                  onChange={(e) => {
-                    // Sadece rakam girilmesine izin ver
-                    const val = e.target.value.replace(/[^0-9]/g, "");
-                    setSearchStudentNumber(val);
-                  }}
-                  className="w-48 bg-white pr-10"
-                />
-                <FaSearch className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
-              </div>
-              <Button
-                type="submit"
-                disabled={searchLoading}
-                className="bg-blue-600 hover:bg-blue-700 text-white cursor-pointer"
-              >
-                {searchLoading ? "Aranıyor..." : "Ara"}
-              </Button>
-            </form>
+            <Link
+              href="/teacher/students"
+              className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-3 py-1.5 rounded shadow text-sm transition-colors duration-200"
+            >
+              Öğrenci Listesine Git
+            </Link>
           </div>
+
+          <form
+            onSubmit={handleSearch}
+            className="flex items-center gap-2 mb-6"
+          >
+            <div className="relative">
+              <Input
+                type="text"
+                inputMode="numeric"
+                pattern="[0-9]*"
+                maxLength={12}
+                placeholder="Öğrenci Numarası"
+                value={searchStudentNumber}
+                onChange={(e) => {
+                  // Sadece rakam girilmesine izin ver
+                  const val = e.target.value.replace(/[^0-9]/g, "");
+                  setSearchStudentNumber(val);
+                }}
+                className="w-48 bg-white pr-10"
+              />
+              <FaSearch className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+            </div>
+            <Button
+              type="submit"
+              disabled={searchLoading}
+              className="bg-blue-600 hover:bg-blue-700 text-white cursor-pointer"
+            >
+              {searchLoading ? "Aranıyor..." : "Ara"}
+            </Button>
+          </form>
 
           {error && (
             <Alert variant="destructive" className="mb-6">

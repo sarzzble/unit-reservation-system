@@ -1,6 +1,6 @@
 import axios from "axios";
 import { getCookie, setCookie, deleteCookie } from "./auth";
-import { TeacherReservation } from "@/interfaces";
+import { TeacherReservation, Student } from "@/interfaces";
 
 const API_URL = "http://127.0.0.1:8000/api";
 
@@ -261,6 +261,22 @@ export const patchMessageRead = async (id: number) => {
 export const getDutyTeacherByDate = async (date: string) => {
   try {
     const response = await api.get("/duty-teacher/", { params: { date } });
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+// Öğrenci listeleme (filtreleme ve sıralama destekli)
+export const getStudents = async (
+  params: {
+    search?: string;
+    student_class?: string;
+    ordering?: string;
+  } = {}
+): Promise<Student[]> => {
+  try {
+    const response = await api.get("/student/", { params });
     return response.data;
   } catch (error) {
     throw error;
