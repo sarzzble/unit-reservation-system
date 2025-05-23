@@ -141,14 +141,21 @@ export default function TeacherUnitsPage() {
     setError("");
     setSearchLoading(true);
     try {
-      const data = await getReservations(searchStudentNumber);
-      setReservations(data);
-      if (data.length > 0) {
-        setSearchedStudentName(
-          data[0].user.first_name + " " + data[0].user.last_name
-        );
-      } else {
+      // Eğer arama kutusu boşsa, tüm rezervasyonları getir
+      if (!searchStudentNumber) {
+        const data = await getReservations();
+        setReservations(data);
         setSearchedStudentName("");
+      } else {
+        const data = await getReservations(searchStudentNumber);
+        setReservations(data);
+        if (data.length > 0) {
+          setSearchedStudentName(
+            data[0].user.first_name + " " + data[0].user.last_name
+          );
+        } else {
+          setSearchedStudentName("");
+        }
       }
     } catch (error) {
       setReservations([]);
