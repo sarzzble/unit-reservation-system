@@ -8,26 +8,29 @@ import { FiMenu, FiX } from "react-icons/fi";
 import { useRouter } from "next/navigation";
 import { FaUser, FaRegEnvelope } from "react-icons/fa";
 import { LuCalendarClock } from "react-icons/lu";
-import { useUser } from "@/components/UserContext";
 
-export default function Navbar() {
+export function StudentNavbar() {
+  return <NavbarContent isTeacher={false} />;
+}
+
+export function TeacherNavbar() {
+  return <NavbarContent isTeacher={true} />;
+}
+
+function NavbarContent({ isTeacher }: { isTeacher: boolean }) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
-  const { user } = useUser();
-  const isTeacher = user?.is_staff ?? false;
 
   const handleLogout = () => {
     try {
       logout();
-      // Öğretmen/öğrenci ayrımına göre yönlendir
-      router.push(isTeacher ? "/teacher-login" : "/login");
+      router.push(isTeacher ? "/teacher/login" : "/student/login");
     } catch (error) {
       console.error("Logout error:", error);
     }
   };
 
-  // Dış tıklamada menüyü kapatma
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
@@ -38,13 +41,12 @@ export default function Navbar() {
     if (isMenuOpen) {
       document.addEventListener("mousedown", handleClickOutside);
     }
-
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, [isMenuOpen]);
 
-  const homePath = isTeacher ? "/teacher/units" : "/units";
+  const homePath = isTeacher ? "/teacher/reservations" : "/student/units";
 
   return (
     <nav className="bg-white border-b-2">
@@ -85,7 +87,7 @@ export default function Navbar() {
           <div className="hidden sm:flex items-center space-x-4">
             {!isTeacher && (
               <Link
-                href="/my-reservations"
+                href="/student/my-reservations"
                 className="flex items-center gap-2 text-gray-800 hover:opacity-80 transition-opacity px-3 py-2 rounded-md text-sm font-medium"
               >
                 <LuCalendarClock className="w-4 h-4" />
@@ -93,14 +95,14 @@ export default function Navbar() {
               </Link>
             )}
             <Link
-              href="/profile"
+              href={isTeacher ? "/teacher/profile" : "/student/profile"}
               className="flex items-center gap-2 text-gray-800 hover:opacity-80 transition-opacity px-3 py-2 rounded-md text-sm font-medium"
             >
               <FaUser className="w-4 h-4" />
               Profilim
             </Link>
             <Link
-              href="/messages"
+              href={isTeacher ? "/teacher/messages" : "/student/messages"}
               className="flex items-center gap-2 text-gray-800 hover:opacity-80 transition-opacity px-3 py-2 rounded-md text-sm font-medium"
             >
               <FaRegEnvelope className="w-4 h-4" />
@@ -123,7 +125,7 @@ export default function Navbar() {
           >
             {!isTeacher && (
               <Link
-                href="/my-reservations"
+                href="/student/my-reservations"
                 className="flex items-center gap-2 text-gray-800 px-4 py-2 text-sm"
                 onClick={() => setIsMenuOpen(false)}
               >
@@ -132,7 +134,7 @@ export default function Navbar() {
               </Link>
             )}
             <Link
-              href="/profile"
+              href={isTeacher ? "/teacher/profile" : "/student/profile"}
               className="flex items-center gap-2 text-gray-800 px-4 py-2 text-sm"
               onClick={() => setIsMenuOpen(false)}
             >
@@ -140,7 +142,7 @@ export default function Navbar() {
               Profilim
             </Link>
             <Link
-              href="/messages"
+              href={isTeacher ? "/teacher/messages" : "/student/messages"}
               className="flex items-center gap-2 text-gray-800 px-4 py-2 text-sm"
               onClick={() => setIsMenuOpen(false)}
             >

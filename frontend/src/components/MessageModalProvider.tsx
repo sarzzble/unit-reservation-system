@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useMessages } from "@/components/MessagesContext";
+import { useMessages } from "@/components/context/MessagesContext";
 import {
   Dialog,
   DialogContent,
@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { usePathname } from "next/navigation";
-import { useUser } from "@/components/UserContext";
+import { useUser } from "@/components/context/UserContext";
 
 interface Message {
   id: number;

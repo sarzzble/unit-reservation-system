@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { getStudents } from "@/lib/api";
 import { Student } from "@/interfaces";
-import Navbar from "@/components/Navbar";
+import { TeacherNavbar } from "@/components/Navbar";
 import { Input } from "@/components/ui/input";
 import {
   Table,
@@ -79,7 +79,7 @@ export default function TeacherStudentsPage() {
 
   return (
     <>
-      <Navbar />
+      <TeacherNavbar />
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-blue-100 p-4 sm:p-6 lg:p-8">
         <div className="max-w-7xl mx-auto">
           <div className="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4">
@@ -92,7 +92,7 @@ export default function TeacherStudentsPage() {
               </p>
             </div>
             <Link
-              href="/teacher/units"
+              href="/teacher/reservations"
               className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-3 py-1.5 rounded shadow text-sm transition-colors duration-200"
             >
               Ünit Rezervasyonlarına Git

@@ -18,7 +18,7 @@ export default function NotFound() {
 
   const handleNavigation = () => {
     if (isLoggedIn) {
-      router.push("/units");
+      router.push("/student/units");
     } else {
       router.push("/");
     }

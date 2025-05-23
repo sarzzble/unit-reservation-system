@@ -8,11 +8,11 @@ export default function Home() {
   const router = useRouter();
 
   const handleTeacherLogin = () => {
-    router.push("/teacher-login");
+    router.push("/teacher/login");
   };
 
   const handleStudentLogin = () => {
-    router.push("/login");
+    router.push("/student/login");
   };
 
   return (

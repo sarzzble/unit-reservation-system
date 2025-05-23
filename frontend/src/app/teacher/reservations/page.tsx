@@ -32,9 +32,9 @@ import {
   getDutyTeacherByDate,
 } from "@/lib/api";
 import { TeacherReservation } from "@/interfaces";
-import Navbar from "@/components/Navbar";
+import { TeacherNavbar } from "@/components/Navbar";
 import { Input } from "@/components/ui/input";
-import { useUser } from "@/components/UserContext";
+import { useUser } from "@/components/context/UserContext";
 
 export default function TeacherUnitsPage() {
   const router = useRouter();
@@ -59,13 +59,13 @@ export default function TeacherUnitsPage() {
 
     if (!user) {
       setLoading(false);
-      router.push("/"); // Redirect if no user is logged in
+      router.push("/teacher/login"); // Redirect if no user is logged in
       return;
     }
 
     if (!user.is_staff) {
       setLoading(false);
-      router.push("/"); // Redirect if the user is not a teacher
+      router.push("/teacher/login"); // Redirect if the user is not a teacher
       return;
     }
 
@@ -81,7 +81,7 @@ export default function TeacherUnitsPage() {
             error.response?.status === 403
           ) {
             setLoading(false);
-            router.push("/");
+            router.push("/teacher/login");
             return;
           }
           setError(error.response?.data?.error || "Bir hata oluştu");
@@ -180,7 +180,7 @@ export default function TeacherUnitsPage() {
 
   return (
     <div className="min-h-screen flex flex-col">
-      <Navbar />
+      <TeacherNavbar />
       <div className="flex-grow">
         <div className="min-h-screen bg-gradient-to-br from-blue-50 to-blue-100 p-4 sm:p-6 lg:p-8">
           <div className="max-w-7xl mx-auto">

@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { getUnits, makeReservation, getDutyTeacherByDate } from "@/lib/api";
 import { AxiosError } from "axios";
-import Navbar from "@/components/Navbar";
+import { StudentNavbar } from "@/components/Navbar";
 import { useRouter } from "next/navigation";
 import { Calendar } from "@/components/ui/calendar";
 import {
@@ -117,7 +117,7 @@ export default function UnitsPage() {
         time_slot: selectedTimeSlot,
       });
       setShowConfirmDialog(false);
-      router.push("/my-reservations");
+      router.push("/student/my-reservations");
     } catch (err) {
       if (err instanceof AxiosError) {
         const errorMessage =
@@ -141,7 +141,7 @@ export default function UnitsPage() {
 
   return (
     <>
-      <Navbar />
+      <StudentNavbar />
       <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 py-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
         <div className="max-w-7xl mx-auto relative z-10">
           <div className="text-center mb-8">

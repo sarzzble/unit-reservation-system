@@ -73,7 +73,7 @@ export default function RegisterPage() {
       setIsSuccess(true);
       // 3 saniye sonra login sayfasına yönlendir
       setTimeout(() => {
-        router.push("/login");
+        router.push("/student/login");
       }, 3000);
     } catch (error) {
       if (error instanceof AxiosError && error.response?.data) {

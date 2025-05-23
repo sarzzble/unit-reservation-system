@@ -58,7 +58,7 @@ function LoginForm() {
       setCookie("user", JSON.stringify(response.user), 1); // 1 gün
 
       // Eğer yönlendirilecek sayfa varsa oraya, yoksa units sayfasına git
-      const from = searchParams.get("from") || "/units";
+      const from = searchParams.get("from") || "/student/units";
       router.push(from);
     } catch (err: unknown) {
       if (err instanceof AxiosError) {
@@ -181,7 +181,7 @@ function LoginForm() {
           <div className="text-sm text-center text-gray-600">
             Hesabınız yok mu?{" "}
             <Link
-              href="/register"
+              href="/students/register"
               className="font-medium text-green-600 hover:text-green-500 transition-colors duration-200"
             >
               Kayıt olun

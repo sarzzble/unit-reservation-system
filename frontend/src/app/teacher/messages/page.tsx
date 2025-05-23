@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import Navbar from "@/components/Navbar";
+import { TeacherNavbar } from "@/components/Navbar";
 import { FaTrash } from "react-icons/fa";
 import {
   Dialog,
@@ -13,17 +13,14 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { useUser } from "@/components/UserContext";
-import { useMessages } from "@/components/MessagesContext";
+import { useMessages } from "@/components/context/MessagesContext";
 
-export default function MessagesPage() {
+export default function TeacherMessagesPage() {
   const { messages, loading, error, removeMessage, removeAll } = useMessages();
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [selectedMessageId, setSelectedMessageId] = useState<number | null>(
     null
   );
-  const { user } = useUser();
-  const isTeacher = user?.is_staff ?? false;
 
   const handleDelete = async (id: number) => {
     setSelectedMessageId(id);
@@ -48,23 +45,11 @@ export default function MessagesPage() {
 
   return (
     <>
-      <Navbar />
-      <div
-        className={`min-h-screen py-12 px-4 sm:px-6 lg:px-8 ${
-          isTeacher
-            ? "bg-gradient-to-br from-blue-50 to-blue-100"
-            : "bg-gradient-to-br from-green-50 to-green-100"
-        }`}
-      >
+      <TeacherNavbar />
+      <div className="min-h-screen py-12 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-blue-50 to-blue-100">
         <div className="max-w-2xl mx-auto">
           <div className="flex justify-between items-center mb-6">
-            <h2
-              className={`text-2xl font-bold ${
-                isTeacher ? "text-blue-700" : "text-green-700"
-              }`}
-            >
-              Gelen Mesajlar
-            </h2>
+            <h2 className="text-2xl font-bold text-blue-700">Gelen Mesajlar</h2>
             {messages.length > 0 && (
               <Button
                 onClick={handleDeleteAll}
@@ -89,10 +74,10 @@ export default function MessagesPage() {
             {messages.map((msg) => (
               <div
                 key={msg.id}
-                className="bg-white rounded-lg shadow p-4 border flex justify-between items-center border-green-100"
+                className="bg-white rounded-lg shadow p-4 border flex justify-between items-center border-blue-100"
               >
                 <div>
-                  <span className="font-semibold text-green-700 mb-2 block">
+                  <span className="font-semibold text-blue-700 mb-2 block">
                     {msg.title}
                   </span>
                   <span className="text-gray-700 mb-2 block">

@@ -9,7 +9,7 @@ import {
   deleteSinglePastReservation,
 } from "@/lib/api";
 import { AxiosError } from "axios";
-import Navbar from "@/components/Navbar";
+import { StudentNavbar } from "@/components/Navbar";
 import {
   Dialog,
   DialogContent,
@@ -41,14 +41,21 @@ export default function MyReservationsPage() {
   const [deleteSingleLoading, setDeleteSingleLoading] = useState<number | null>(
     null
   );
-  const [activeReservations, setActiveReservations] = useState<Reservation[]>([]);
+  const [activeReservations, setActiveReservations] = useState<Reservation[]>(
+    []
+  );
   const [pastReservations, setPastReservations] = useState<Reservation[]>([]);
 
   const fetchReservations = async () => {
     try {
       const data = await getMyReservations();
       // Beklenen format: { active: [...], past: [...] }
-      if (data && typeof data === "object" && "active" in data && "past" in data) {
+      if (
+        data &&
+        typeof data === "object" &&
+        "active" in data &&
+        "past" in data
+      ) {
         setActiveReservations(Array.isArray(data.active) ? data.active : []);
         setPastReservations(Array.isArray(data.past) ? data.past : []);
       } else {
@@ -72,7 +79,7 @@ export default function MyReservationsPage() {
   useEffect(() => {
     const token = getCookie("access_token");
     if (!token) {
-      router.push("/login");
+      router.push("/student/login");
       return;
     }
 
@@ -154,7 +161,7 @@ export default function MyReservationsPage() {
   if (loading) {
     return (
       <>
-        <Navbar />
+        <StudentNavbar />
         <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 py-12 px-4 sm:px-6 lg:px-8">
           <div className="max-w-3xl mx-auto">
             <div className="text-center text-gray-600">Yükleniyor...</div>
@@ -167,7 +174,7 @@ export default function MyReservationsPage() {
   if (fetchError) {
     return (
       <>
-        <Navbar />
+        <StudentNavbar />
         <div className="min-h-screen flex items-center justify-center">
           <div className="text-xl text-red-500">{fetchError}</div>
         </div>
@@ -177,7 +184,7 @@ export default function MyReservationsPage() {
 
   return (
     <>
-      <Navbar />
+      <StudentNavbar />
       <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 py-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
         <div className="max-w-7xl mx-auto relative z-10">
           <div className="text-center mb-8">

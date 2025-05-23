@@ -62,8 +62,8 @@ function TeacherLoginForm() {
       setCookie("refresh_token", response.refresh, 7);
       setCookie("user", JSON.stringify(response.user), 1);
 
-      // Eğer yönlendirilecek sayfa varsa oraya, yoksa teacher/units sayfasına git
-      const from = searchParams.get("from") || "/teacher/units";
+      // Eğer yönlendirilecek sayfa varsa oraya, yoksa teacher/reservations sayfasına git
+      const from = searchParams.get("from") || "/teacher/reservations";
       router.push(from);
     } catch (err: unknown) {
       if (err instanceof AxiosError) {

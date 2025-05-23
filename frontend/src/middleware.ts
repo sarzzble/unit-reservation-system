@@ -2,18 +2,18 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
 // Öğrenci rotaları
-const studentRoutes = ["/units", "/my-reservations"];
+const studentRoutes = ["/student/units", "/student/my-reservations"];
 // Öğretmen rotaları
-const teacherRoutes = ["/teacher/units"];
+const teacherRoutes = ["/teacher/reservations"];
 // Herkese açık rotalar
-const publicRoutes = ["/login", "/register", "/teacher-login"];
+const publicRoutes = ["/student/login", "/student/register", "/teacher/login"];
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const token = request.cookies.get("access_token")?.value;
   const userCookie = request.cookies.get("user")?.value;
   let user;
-  
+
   try {
     user = userCookie ? JSON.parse(userCookie) : null;
   } catch {
@@ -27,7 +27,10 @@ export function middleware(request: NextRequest) {
     // Token varsa uygun sayfaya yönlendir
     if (token) {
       return NextResponse.redirect(
-        new URL(isTeacher ? "/teacher/units" : "/units", request.url)
+        new URL(
+          isTeacher ? "/teacher/reservations" : "/student/units",
+          request.url
+        )
       );
     }
     // Token yoksa anasayfaya erişime izin ver
@@ -39,7 +42,10 @@ export function middleware(request: NextRequest) {
     // Token varsa uygun sayfaya yönlendir
     if (token) {
       return NextResponse.redirect(
-        new URL(isTeacher ? "/teacher/units" : "/units", request.url)
+        new URL(
+          isTeacher ? "/teacher/reservations" : "/student/units",
+          request.url
+        )
       );
     }
     // Token yoksa sayfaya erişime izin ver
@@ -50,7 +56,7 @@ export function middleware(request: NextRequest) {
   if (teacherRoutes.some((route) => pathname.startsWith(route))) {
     // Token yoksa öğretmen girişine yönlendir
     if (!token) {
-      const url = new URL("/teacher-login", request.url);
+      const url = new URL("/teacher/login", request.url);
       url.searchParams.set("from", pathname);
       return NextResponse.redirect(url);
     }
@@ -66,13 +72,15 @@ export function middleware(request: NextRequest) {
   if (studentRoutes.some((route) => pathname.startsWith(route))) {
     // Token yoksa öğrenci girişine yönlendir
     if (!token) {
-      const url = new URL("/login", request.url);
+      const url = new URL("student/login", request.url);
       url.searchParams.set("from", pathname);
       return NextResponse.redirect(url);
     }
     // Öğretmense öğretmen sayfasına yönlendir
     if (isTeacher) {
-      return NextResponse.redirect(new URL("/teacher/units", request.url));
+      return NextResponse.redirect(
+        new URL("/teacher/reservations", request.url)
+      );
     }
     // Token varsa ve öğrenciyse sayfaya erişime izin ver
     return NextResponse.next();
