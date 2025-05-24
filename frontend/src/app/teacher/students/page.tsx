@@ -112,12 +112,15 @@ export default function TeacherStudentsPage() {
               />
               <FaSearch className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
             </div>
-            <Input
-              placeholder="Sınıf"
+            <select
               value={studentClass}
               onChange={(e) => setStudentClass(e.target.value)}
-              className="w-32 bg-white"
-            />
+              className="w-32 bg-white border rounded h-10 focus:outline-none focus:ring-2 focus:ring-blue-400 transition text-gray-900 placeholder:text-gray-400"
+            >
+              <option value="">Sınıf Seçiniz</option>
+              <option value="4">4. Sınıf</option>
+              <option value="5">5. Sınıf</option>
+            </select>
             <select
               value={ordering}
               onChange={(e) => setOrdering(e.target.value)}
