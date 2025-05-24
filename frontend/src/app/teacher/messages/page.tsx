@@ -18,9 +18,8 @@ import { useRouter } from "next/navigation";
 import { useUser } from "@/components/context/UserContext";
 
 export default function TeacherMessagesPage() {
-  const { messages, loading, error, removeMessage, removeAll, refetch } =
-    useMessages();
-  const { user, loading: userLoading, refetch: refetchUser } = useUser();
+  const { inbox, loading, error, refetchInbox, removeMessage } = useMessages();
+  const { loading: userLoading, refetch: refetchUser } = useUser();
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [selectedMessageId, setSelectedMessageId] = useState<number | null>(
     null
@@ -29,14 +28,11 @@ export default function TeacherMessagesPage() {
 
   useEffect(() => {
     refetchUser();
-    refetch();
+    refetchInbox();
   }, []);
 
-  // Sadece gelen mesajlar: recipient mevcut user'ın id'si ise gelen mesajdır
-  const incomingMessages =
-    user && !userLoading
-      ? messages.filter((msg) => msg.recipient === user.id)
-      : [];
+  // Gelen kutusu doğrudan context'ten alınır
+  const incomingMessages = inbox;
 
   const handleDelete = async (id: number) => {
     setSelectedMessageId(id);
@@ -46,17 +42,11 @@ export default function TeacherMessagesPage() {
   const confirmDelete = async () => {
     if (selectedMessageId !== null) {
       try {
-        await removeMessage(selectedMessageId);
+        await removeMessage(selectedMessageId, "inbox");
       } catch {}
       setShowConfirmDialog(false);
       setSelectedMessageId(null);
     }
-  };
-
-  const handleDeleteAll = async () => {
-    try {
-      await removeAll();
-    } catch {}
   };
 
   return (
@@ -83,16 +73,6 @@ export default function TeacherMessagesPage() {
               >
                 Gönderilen Mesajlar
               </Button>
-              {incomingMessages.length > 0 && (
-                <Button
-                  onClick={handleDeleteAll}
-                  variant="outline"
-                  size="sm"
-                  className="text-red-600 border-red-200 hover:bg-red-50 hover:text-red-700 ml-2 cursor-pointer"
-                >
-                  Tümünü Sil
-                </Button>
-              )}
             </div>
           </div>
           {(loading || userLoading) && <div>Yükleniyor...</div>}

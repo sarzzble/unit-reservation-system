@@ -494,7 +494,9 @@ class MessageListCreateView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def get(self, request):
-        messages = Message.objects.all().order_by('-created_at')
+        user = request.user
+        # Gelen kutusu: sadece silinmemiş mesajlar
+        messages = Message.objects.filter(recipient=user, recipient_deleted=False).order_by('-created_at')
         serializer = MessageSerializer(messages, many=True)
         return Response(serializer.data)
 
@@ -505,8 +507,12 @@ class MessageListCreateView(APIView):
 
         serializer = MessageSerializer(data=request.data)
         if serializer.is_valid():
-            serializer.save(sender=request.user)
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
+            message = serializer.save(sender=request.user)
+            # UserMessage kayıtları oluştur
+            from .models import UserMessage
+            UserMessage.objects.create(user=request.user, message=message, box_type='sent')
+            UserMessage.objects.create(user_id=recipient_id, message=message, box_type='inbox')
+            return Response(MessageSerializer(message).data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class SentMessagesView(APIView):
@@ -518,6 +524,73 @@ class SentMessagesView(APIView):
         messages = Message.objects.filter(sender=user, sender_deleted=False).order_by('-created_at')
         serializer = MessageSerializer(messages, many=True)
         return Response(serializer.data)
+
+class InboxView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request):
+        from .models import UserMessage
+        user = request.user
+        inbox = UserMessage.objects.filter(user=user, box_type='inbox').select_related('message').order_by('-created_at')
+        data = [
+            {
+                'id': um.message.id,
+                'title': um.message.title,
+                'content': um.message.content,
+                'created_at': um.message.created_at,
+                'is_read': um.is_read,
+                'sender': um.message.sender_id,
+                'sender_name': f"{um.message.sender.first_name} {um.message.sender.last_name}" if um.message.sender else None,
+            }
+            for um in inbox
+        ]
+        return Response(data)
+
+class SentBoxView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request):
+        from .models import UserMessage
+        user = request.user
+        sent = UserMessage.objects.filter(user=user, box_type='sent').select_related('message').order_by('-created_at')
+        data = [
+            {
+                'id': um.message.id,
+                'title': um.message.title,
+                'content': um.message.content,
+                'created_at': um.message.created_at,
+                'is_read': um.is_read,
+                'recipient': um.message.recipient_id,
+                'recipient_name': f"{um.message.recipient.first_name} {um.message.recipient.last_name}" if um.message.recipient else None,
+            }
+            for um in sent
+        ]
+        return Response(data)
+
+class UserMessageDeleteView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def delete(self, request, pk):
+        from .models import UserMessage
+        user = request.user
+        try:
+            user_message = UserMessage.objects.get(user=user, message_id=pk)
+            user_message.delete()
+            return Response({"message": "Mesaj kutunuzdan silindi."}, status=204)
+        except UserMessage.DoesNotExist:
+            return Response({"error": "Mesaj bulunamadı."}, status=404)
+
+class UserMessageReadView(APIView):
+    def patch(self, request, pk):
+        from .models import UserMessage
+        user = request.user
+        try:
+            user_message = UserMessage.objects.get(user=user, message_id=pk)
+            user_message.is_read = True
+            user_message.save()
+            return Response({'message': 'Mesaj okundu olarak işaretlendi.'}, status=200)
+        except UserMessage.DoesNotExist:
+            return Response({'error': 'Mesaj bulunamadı.'}, status=404)
 
 
 

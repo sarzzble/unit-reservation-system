@@ -134,3 +134,14 @@ class Message(models.Model):
 
     def __str__(self):
         return f"{self.sender} -> {self.recipient}: {self.title}"
+
+# Kullanıcıya özel mesaj kutusu
+class UserMessage(models.Model):
+    user = models.ForeignKey('User', on_delete=models.CASCADE, related_name='user_messages')
+    message = models.ForeignKey('Message', on_delete=models.CASCADE, related_name='user_messages')
+    box_type = models.CharField(max_length=10, choices=[('inbox', 'Inbox'), ('sent', 'Sent')])
+    is_read = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.user} - {self.box_type} - {self.message.title}"

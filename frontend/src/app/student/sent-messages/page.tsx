@@ -12,14 +12,21 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { useMessages } from "@/components/context/MessagesContext";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { useUser } from "@/components/context/UserContext";
 import { useRouter } from "next/navigation";
+import { getSentMessages, deleteUserMessage } from "@/lib/api";
+
+type SentMessage = {
+  id: number;
+  title: string;
+  content: string;
+  created_at: string;
+};
 
 export default function SentMessagesPage() {
-  const { messages, loading, error, removeMessage, refetch } = useMessages();
-  const { user } = useUser();
+  const [sentMessages, setSentMessages] = useState<SentMessage[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
   const router = useRouter();
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [selectedMessageId, setSelectedMessageId] = useState<number | null>(
@@ -27,11 +34,12 @@ export default function SentMessagesPage() {
   );
 
   useEffect(() => {
-    refetch();
+    setLoading(true);
+    getSentMessages()
+      .then((data) => setSentMessages(data))
+      .catch(() => setError("Gönderilen kutusu yüklenirken bir hata oluştu."))
+      .finally(() => setLoading(false));
   }, []);
-
-  // Sadece gönderilen mesajlar: sender mevcut user'ın id'si ise gönderilen mesajdır
-  const sentMessages = messages.filter((msg) => user && msg.sender === user.id);
 
   const handleDelete = async (id: number) => {
     setSelectedMessageId(id);
@@ -41,7 +49,10 @@ export default function SentMessagesPage() {
   const confirmDelete = async () => {
     if (selectedMessageId !== null) {
       try {
-        await removeMessage(selectedMessageId);
+        await deleteUserMessage(selectedMessageId);
+        setSentMessages((prev) =>
+          prev.filter((msg) => msg.id !== selectedMessageId)
+        );
       } catch {}
       setShowConfirmDialog(false);
       setSelectedMessageId(null);

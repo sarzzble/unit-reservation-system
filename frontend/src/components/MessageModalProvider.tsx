@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useMessages } from "@/components/context/MessagesContext";
+import { useMessages, UserMessage } from "@/components/context/MessagesContext";
 import {
   Dialog,
   DialogContent,
@@ -11,32 +11,21 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { usePathname } from "next/navigation";
 import { useUser } from "@/components/context/UserContext";
-
-interface Message {
-  id: number;
-  title: string;
-  content: string;
-  created_at: string;
-  is_read: boolean;
-}
 
 export default function MessageModalProvider() {
   const [showMessageModal, setShowMessageModal] = useState(false);
-  const [unreadMessage, setUnreadMessage] = useState<Message | null>(null);
-  const pathname = usePathname();
+  const [unreadMessage, setUnreadMessage] = useState<UserMessage | null>(null);
   const { user } = useUser();
-  const { messages, markAsRead, refetch } = useMessages();
+  const { inbox, markAsRead, refetchInbox } = useMessages();
 
   useEffect(() => {
     if (!user || user.is_staff) return;
+    // UserMessage tabanlı yeni API'ye tam uyumlu kontrol
+    // inbox'taki her mesajda sender, sender_name, recipient, recipient_name alanları olabilir
     // Öğrencinin kendi gönderdiği mesajlar modalda gösterilmesin
-    const firstUnread = messages.find(
-      (msg) =>
-        msg.is_read === false &&
-        msg.recipient === user.id &&
-        msg.sender !== user.id
+    const firstUnread = inbox.find(
+      (msg) => msg.is_read === false && msg.sender !== user.id // kendi gönderdiği mesajı gösterme
     );
     if (firstUnread) {
       setUnreadMessage(firstUnread);
@@ -45,13 +34,13 @@ export default function MessageModalProvider() {
       setShowMessageModal(false);
       setUnreadMessage(null);
     }
-  }, [pathname, user, messages]);
+  }, [user, inbox]);
 
   const handleCloseMessageModal = async () => {
     if (unreadMessage) {
       try {
         await markAsRead(unreadMessage.id);
-        await refetch();
+        await refetchInbox();
       } catch {}
     }
     setShowMessageModal(false);

@@ -1,34 +1,35 @@
 "use client";
 import React, { createContext, useContext, useEffect, useState } from "react";
 import {
-  getMessages,
-  patchMessageRead,
-  deleteMessage,
-  deleteAllMessages,
+  getInboxMessages,
+  getSentMessages,
+  patchUserMessageRead,
+  deleteUserMessage,
 } from "@/lib/api";
 import { getCookie } from "@/lib/auth";
 
-export interface Message {
+export interface UserMessage {
   id: number;
   title: string;
   content: string;
   created_at: string;
   is_read: boolean;
-  recipient: number;
-  recipient_name: string;
   sender: number;
   sender_name: string;
+  recipient: number;
+  recipient_name: string;
+  box_type: "inbox" | "sent";
 }
 
 interface MessagesContextType {
-  messages: Message[];
-  setMessages: React.Dispatch<React.SetStateAction<Message[]>>;
+  inbox: UserMessage[];
+  sentbox: UserMessage[];
   loading: boolean;
   error: string;
-  refetch: () => Promise<void>;
+  refetchInbox: () => Promise<void>;
+  refetchSentbox: () => Promise<void>;
   markAsRead: (id: number) => Promise<void>;
-  removeMessage: (id: number) => Promise<void>;
-  removeAll: () => Promise<void>;
+  removeMessage: (id: number, box: "inbox" | "sent") => Promise<void>;
 }
 
 const MessagesContext = createContext<MessagesContextType | undefined>(
@@ -40,57 +41,76 @@ export const MessagesProvider = ({
 }: {
   children: React.ReactNode;
 }) => {
-  const [messages, setMessages] = useState<Message[]>([]);
+  const [inbox, setInbox] = useState<UserMessage[]>([]);
+  const [sentbox, setSentbox] = useState<UserMessage[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  const fetchMessages = async () => {
+  // Kullanıcı veya token değiştiğinde kutuları güncelle
+  useEffect(() => {
+    if (typeof window === "undefined") return; // SSR koruması
+    const accessToken = getCookie("access_token");
+    if (!accessToken) return;
+    fetchInbox();
+    fetchSentbox();
+  }, []);
+
+  const fetchInbox = async () => {
     setLoading(true);
     setError("");
     try {
-      const data = await getMessages();
-      setMessages(data);
+      const data = await getInboxMessages();
+      setInbox(data);
     } catch {
-      setError("Mesajlar yüklenirken bir hata oluştu.");
+      setError("Gelen kutusu yüklenirken bir hata oluştu.");
     } finally {
       setLoading(false);
     }
   };
 
-  useEffect(() => {
-    // Eğer access_token yoksa fetch başlatma
-    if (!getCookie("access_token")) return;
-    fetchMessages();
-  }, []);
+  const fetchSentbox = async () => {
+    setLoading(true);
+    setError("");
+    try {
+      const data = await getSentMessages();
+      setSentbox(data);
+    } catch {
+      setError("Gönderilen kutusu yüklenirken bir hata oluştu.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const markAsRead = async (id: number) => {
-    await patchMessageRead(id);
-    setMessages((prev) =>
+    await patchUserMessageRead(id);
+    setInbox((prev) =>
+      prev.map((msg) => (msg.id === id ? { ...msg, is_read: true } : msg))
+    );
+    setSentbox((prev) =>
       prev.map((msg) => (msg.id === id ? { ...msg, is_read: true } : msg))
     );
   };
 
-  const removeMessage = async (id: number) => {
-    await deleteMessage(id);
-    setMessages((prev) => prev.filter((msg) => msg.id !== id));
-  };
-
-  const removeAll = async () => {
-    await deleteAllMessages();
-    setMessages([]);
+  const removeMessage = async (id: number, box: "inbox" | "sent") => {
+    await deleteUserMessage(id);
+    if (box === "inbox") {
+      setInbox((prev) => prev.filter((msg) => msg.id !== id));
+    } else {
+      setSentbox((prev) => prev.filter((msg) => msg.id !== id));
+    }
   };
 
   return (
     <MessagesContext.Provider
       value={{
-        messages,
-        setMessages,
+        inbox,
+        sentbox,
         loading,
         error,
-        refetch: fetchMessages,
+        refetchInbox: fetchInbox,
+        refetchSentbox: fetchSentbox,
         markAsRead,
         removeMessage,
-        removeAll,
       }}
     >
       {children}

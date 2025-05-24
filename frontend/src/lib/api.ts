@@ -245,15 +245,6 @@ export const deleteMessage = async (id: number) => {
   }
 };
 
-export const deleteAllMessages = async () => {
-  try {
-    const response = await api.delete("/messages/");
-    return response.data;
-  } catch (error) {
-    throw error;
-  }
-};
-
 export const patchMessageRead = async (id: number) => {
   try {
     const response = await api.patch(`/messages/${id}/`, { is_read: true });
@@ -291,6 +282,40 @@ export const getStudents = async (
 export const getTeachers = async () => {
   const response = await api.get("/teachers/");
   return response.data;
+};
+
+// Yeni UserMessage tabanlı mesaj API fonksiyonları
+
+// Gelen kutusu (inbox)
+export const getInboxMessages = async () => {
+  const response = await api.get("/inbox/");
+  return response.data;
+};
+
+// Gönderilen kutusu (sentbox)
+export const getSentMessages = async () => {
+  const response = await api.get("/sentbox/");
+  return response.data;
+};
+
+// Mesajı okundu olarak işaretle (UserMessage)
+export const patchUserMessageRead = async (id: number) => {
+  try {
+    const response = await api.patch(`/usermessage/${id}/`, {});
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+// Mesajı sil (UserMessage)
+export const deleteUserMessage = async (id: number) => {
+  try {
+    const response = await api.delete(`/usermessage/${id}/delete/`);
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
 };
 
 export default api;

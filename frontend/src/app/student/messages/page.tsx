@@ -15,18 +15,9 @@ import { Button } from "@/components/ui/button";
 import { useMessages } from "@/components/context/MessagesContext";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useRouter } from "next/navigation";
-import { useUser } from "@/components/context/UserContext";
 
 export default function MessagesPage() {
-  const {
-    messages,
-    loading,
-    error,
-    removeMessage,
-    removeAll,
-    refetch: refetchMessages,
-  } = useMessages();
-  const { user, loading: userLoading, refetch: refetchUser } = useUser();
+  const { inbox, loading, error, refetchInbox, removeMessage } = useMessages();
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [selectedMessageId, setSelectedMessageId] = useState<number | null>(
     null
@@ -34,15 +25,11 @@ export default function MessagesPage() {
   const router = useRouter();
 
   useEffect(() => {
-    refetchUser();
-    refetchMessages();
+    refetchInbox();
   }, []);
 
-  // Sadece gelen mesajlar: recipient mevcut user'ın id'si ise gelen mesajdır
-  const incomingMessages =
-    user && !userLoading
-      ? messages.filter((msg) => msg.recipient === user.id)
-      : [];
+  // Gelen kutusu doğrudan context'ten alınır
+  const incomingMessages = inbox;
 
   const handleDelete = async (id: number) => {
     setSelectedMessageId(id);
@@ -52,17 +39,11 @@ export default function MessagesPage() {
   const confirmDelete = async () => {
     if (selectedMessageId !== null) {
       try {
-        await removeMessage(selectedMessageId);
+        await removeMessage(selectedMessageId, "inbox");
       } catch {}
       setShowConfirmDialog(false);
       setSelectedMessageId(null);
     }
-  };
-
-  const handleDeleteAll = async () => {
-    try {
-      await removeAll();
-    } catch {}
   };
 
   return (
@@ -91,28 +72,17 @@ export default function MessagesPage() {
               >
                 Gönderilen Mesajlar
               </Button>
-              {incomingMessages.length > 0 && (
-                <Button
-                  onClick={handleDeleteAll}
-                  variant="outline"
-                  size="sm"
-                  className="text-red-600 border-red-200 hover:bg-red-50 hover:text-red-700 ml-2 cursor-pointer"
-                >
-                  Tümünü Sil
-                </Button>
-              )}
             </div>
           </div>
-          {(loading || userLoading) && <div>Yükleniyor...</div>}
-          {!loading && !userLoading && error && (
+          {loading && <div>Yükleniyor...</div>}
+          {!loading && error && (
             <Alert variant="destructive" className="mb-4">
               <AlertDescription>{error}</AlertDescription>
             </Alert>
           )}
-          {!loading &&
-            !userLoading &&
-            incomingMessages.length === 0 &&
-            !error && <div className="text-gray-500">Hiç mesajınız yok.</div>}
+          {!loading && incomingMessages.length === 0 && !error && (
+            <div className="text-gray-500">Hiç mesajınız yok.</div>
+          )}
           <div className="space-y-4">
             {incomingMessages.map((msg) => (
               <div
