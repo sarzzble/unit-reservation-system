@@ -101,6 +101,9 @@ export default function TeacherMessagesPage() {
                   <span className="text-xs text-gray-400 mt-2 block">
                     {new Date(msg.created_at).toLocaleString("tr-TR")}
                   </span>
+                  <span className="text-xs text-gray-500 block">
+                    Gönderen: {msg.sender_name} ({msg.sender_number})
+                  </span>
                 </div>
                 <Button
                   onClick={() => handleDelete(msg.id)}

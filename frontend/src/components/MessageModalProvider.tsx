@@ -62,6 +62,9 @@ export default function MessageModalProvider() {
                   {unreadMessage.content}
                 </span>
                 <br />
+                <span className="text-xs text-gray-500 block">
+                  Gönderen: {unreadMessage.sender_name}
+                </span>
                 <span className="text-xs text-gray-400 mt-2 block">
                   {new Date(unreadMessage.created_at).toLocaleString("tr-TR")}
                 </span>

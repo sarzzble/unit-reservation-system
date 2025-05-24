@@ -16,6 +16,7 @@ export interface UserMessage {
   is_read: boolean;
   sender: number;
   sender_name: string;
+  sender_number: string;
   recipient: number;
   recipient_name: string;
   box_type: "inbox" | "sent";

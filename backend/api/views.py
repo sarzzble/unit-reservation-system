@@ -541,6 +541,7 @@ class InboxView(APIView):
                 'is_read': um.is_read,
                 'sender': um.message.sender_id,
                 'sender_name': f"{um.message.sender.first_name} {um.message.sender.last_name}" if um.message.sender else None,
+                'sender_number': um.message.sender.student_number if um.message.sender else None,
             }
             for um in inbox
         ]
