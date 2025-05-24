@@ -54,7 +54,7 @@ api.interceptors.response.use(
         deleteCookie("access_token");
         deleteCookie("refresh_token");
         localStorage.removeItem("user");
-        window.location.href = "/login";
+        window.location.href = "/";
         return Promise.reject(refreshError);
       }
     }
@@ -222,13 +222,18 @@ export const deleteSinglePastReservation = async (id: number) => {
   }
 };
 
+export const sendMessage = async (data: {
+  recipient: number;
+  title: string;
+  content: string;
+}) => {
+  const response = await api.post("/messages/", data);
+  return response.data;
+};
+
 export const getMessages = async () => {
-  try {
-    const response = await api.get("/messages/");
-    return response.data;
-  } catch (error) {
-    throw error;
-  }
+  const response = await api.get("/messages/");
+  return response.data;
 };
 
 export const deleteMessage = async (id: number) => {
@@ -281,6 +286,11 @@ export const getStudents = async (
   } catch (error) {
     throw error;
   }
+};
+
+export const getTeachers = async () => {
+  const response = await api.get("/teachers/");
+  return response.data;
 };
 
 export default api;

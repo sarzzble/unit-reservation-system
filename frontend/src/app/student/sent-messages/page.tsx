@@ -1,8 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { TeacherNavbar } from "@/components/Navbar";
+import { StudentNavbar } from "@/components/Navbar";
 import { FaTrash } from "react-icons/fa";
 import {
   Dialog,
@@ -14,29 +13,25 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { useMessages } from "@/components/context/MessagesContext";
-import { useRouter } from "next/navigation";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useUser } from "@/components/context/UserContext";
+import { useRouter } from "next/navigation";
 
-export default function TeacherMessagesPage() {
-  const { messages, loading, error, removeMessage, removeAll, refetch } =
-    useMessages();
-  const { user, loading: userLoading, refetch: refetchUser } = useUser();
+export default function SentMessagesPage() {
+  const { messages, loading, error, removeMessage, refetch } = useMessages();
+  const { user } = useUser();
+  const router = useRouter();
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [selectedMessageId, setSelectedMessageId] = useState<number | null>(
     null
   );
-  const router = useRouter();
 
   useEffect(() => {
-    refetchUser();
     refetch();
   }, []);
 
-  // Sadece gelen mesajlar: recipient mevcut user'ın id'si ise gelen mesajdır
-  const incomingMessages =
-    user && !userLoading
-      ? messages.filter((msg) => msg.recipient === user.id)
-      : [];
+  // Sadece gönderilen mesajlar: sender mevcut user'ın id'si ise gönderilen mesajdır
+  const sentMessages = messages.filter((msg) => user && msg.sender === user.id);
 
   const handleDelete = async (id: number) => {
     setSelectedMessageId(id);
@@ -53,66 +48,43 @@ export default function TeacherMessagesPage() {
     }
   };
 
-  const handleDeleteAll = async () => {
-    try {
-      await removeAll();
-    } catch {}
-  };
-
   return (
     <>
-      <TeacherNavbar />
-      <div className="min-h-screen py-12 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-blue-50 to-blue-100">
+      <StudentNavbar />
+      <div className="min-h-screen py-12 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-green-50 to-green-100">
         <div className="max-w-2xl mx-auto">
           <div className="flex justify-between items-center mb-6">
-            <h2 className="text-2xl font-bold text-blue-700">Gelen Mesajlar</h2>
+            <h2 className="text-2xl font-bold text-green-700">
+              Gönderilen Mesajlar
+            </h2>
             <div className="flex gap-2">
               <Button
-                onClick={() => router.push("/teacher/send-message")}
-                variant="default"
-                size="sm"
-                className="bg-blue-600 text-white hover:bg-blue-700 cursor-pointer"
-              >
-                Mesaj Gönder
-              </Button>
-              <Button
-                onClick={() => router.push("/teacher/sent-messages")}
+                onClick={() => router.push("/student/messages")}
                 variant="outline"
                 size="sm"
-                className="text-blue-700 border-blue-200 hover:bg-blue-50 ml-2 cursor-pointer"
+                className="text-green-700 border-green-200 hover:bg-green-50 ml-2 cursor-pointer"
               >
-                Gönderilen Mesajlar
+                Gelen Mesajlar
               </Button>
-              {incomingMessages.length > 0 && (
-                <Button
-                  onClick={handleDeleteAll}
-                  variant="outline"
-                  size="sm"
-                  className="text-red-600 border-red-200 hover:bg-red-50 hover:text-red-700 ml-2 cursor-pointer"
-                >
-                  Tümünü Sil
-                </Button>
-              )}
             </div>
           </div>
-          {(loading || userLoading) && <div>Yükleniyor...</div>}
-          {!loading && !userLoading && error && (
+          {loading && <div>Yükleniyor...</div>}
+          {error && (
             <Alert variant="destructive" className="mb-4">
               <AlertDescription>{error}</AlertDescription>
             </Alert>
           )}
-          {!loading &&
-            !userLoading &&
-            incomingMessages.length === 0 &&
-            !error && <div className="text-gray-500">Hiç mesajınız yok.</div>}
+          {sentMessages.length === 0 && !loading && (
+            <div className="text-gray-500">Hiç gönderilen mesajınız yok.</div>
+          )}
           <div className="space-y-4">
-            {incomingMessages.map((msg) => (
+            {sentMessages.map((msg) => (
               <div
                 key={msg.id}
-                className="bg-white rounded-lg shadow p-4 border flex justify-between items-center border-blue-100"
+                className="bg-white rounded-lg shadow p-4 border flex justify-between items-center border-green-100"
               >
                 <div>
-                  <span className="font-semibold text-blue-700 mb-2 block">
+                  <span className="font-semibold text-green-700 mb-2 block">
                     {msg.title}
                   </span>
                   <span className="text-gray-700 mb-2 block">
@@ -152,10 +124,7 @@ export default function TeacherMessagesPage() {
             >
               Vazgeç
             </Button>
-            <Button
-              onClick={confirmDelete}
-              className="bg-red-600 hover:bg-red-700 cursor-pointer"
-            >
+            <Button onClick={confirmDelete} className="bg-red-600 text-white">
               Sil
             </Button>
           </DialogFooter>

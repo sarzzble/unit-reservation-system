@@ -14,6 +14,10 @@ export interface Message {
   content: string;
   created_at: string;
   is_read: boolean;
+  recipient: number;
+  recipient_name: string;
+  sender: number;
+  sender_name: string;
 }
 
 interface MessagesContextType {

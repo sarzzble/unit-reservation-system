@@ -1,7 +1,6 @@
 "use client";
 
-import { useState } from "react";
-import { Alert, AlertDescription } from "@/components/ui/alert";
+import { useEffect, useState } from "react";
 import { StudentNavbar } from "@/components/Navbar";
 import { FaTrash } from "react-icons/fa";
 import {
@@ -14,13 +13,36 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { useMessages } from "@/components/context/MessagesContext";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { useRouter } from "next/navigation";
+import { useUser } from "@/components/context/UserContext";
 
 export default function MessagesPage() {
-  const { messages, loading, error, removeMessage, removeAll } = useMessages();
+  const {
+    messages,
+    loading,
+    error,
+    removeMessage,
+    removeAll,
+    refetch: refetchMessages,
+  } = useMessages();
+  const { user, loading: userLoading, refetch: refetchUser } = useUser();
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [selectedMessageId, setSelectedMessageId] = useState<number | null>(
     null
   );
+  const router = useRouter();
+
+  useEffect(() => {
+    refetchUser();
+    refetchMessages();
+  }, []);
+
+  // Sadece gelen mesajlar: recipient mevcut user'ın id'si ise gelen mesajdır
+  const incomingMessages =
+    user && !userLoading
+      ? messages.filter((msg) => msg.recipient === user.id)
+      : [];
 
   const handleDelete = async (id: number) => {
     setSelectedMessageId(id);
@@ -52,28 +74,47 @@ export default function MessagesPage() {
             <h2 className="text-2xl font-bold text-green-700">
               Gelen Mesajlar
             </h2>
-            {messages.length > 0 && (
+            <div className="flex gap-2">
               <Button
-                onClick={handleDeleteAll}
+                onClick={() => router.push("/student/send-message")}
+                variant="default"
+                size="sm"
+                className="bg-green-600 text-white hover:bg-green-700 cursor-pointer"
+              >
+                Mesaj Gönder
+              </Button>
+              <Button
+                onClick={() => router.push("/student/sent-messages")}
                 variant="outline"
                 size="sm"
-                className="text-red-600 border-red-200 hover:bg-red-50 hover:text-red-700 ml-2 cursor-pointer"
+                className="text-green-700 border-green-200 hover:bg-green-50 ml-2 cursor-pointer"
               >
-                Tümünü Sil
+                Gönderilen Mesajlar
               </Button>
-            )}
+              {incomingMessages.length > 0 && (
+                <Button
+                  onClick={handleDeleteAll}
+                  variant="outline"
+                  size="sm"
+                  className="text-red-600 border-red-200 hover:bg-red-50 hover:text-red-700 ml-2 cursor-pointer"
+                >
+                  Tümünü Sil
+                </Button>
+              )}
+            </div>
           </div>
-          {loading && <div>Yükleniyor...</div>}
-          {error && (
+          {(loading || userLoading) && <div>Yükleniyor...</div>}
+          {!loading && !userLoading && error && (
             <Alert variant="destructive" className="mb-4">
               <AlertDescription>{error}</AlertDescription>
             </Alert>
           )}
-          {messages.length === 0 && !loading && (
-            <div className="text-gray-500">Hiç mesajınız yok.</div>
-          )}
+          {!loading &&
+            !userLoading &&
+            incomingMessages.length === 0 &&
+            !error && <div className="text-gray-500">Hiç mesajınız yok.</div>}
           <div className="space-y-4">
-            {messages.map((msg) => (
+            {incomingMessages.map((msg) => (
               <div
                 key={msg.id}
                 className="bg-white rounded-lg shadow p-4 border flex justify-between items-center border-green-100"

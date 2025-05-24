@@ -2,7 +2,7 @@ from django.urls import path
 from .views import (
     CancelReservationAPIView, DutyScheduleCreateView, DutyScheduleListView, LoginAPIView, LogoutAPIView, RegisterView, TeacherStudentListView ,
     UnitListView, MakeReservationView, MyReservationsView, UserUpdateAPIView,
-    UserInfoView, ChangePasswordView, TeacherReservationsView, DeletePastReservationsView, StudentMessagesView, DutyTeacherByDateView
+    UserInfoView, ChangePasswordView, TeacherReservationsView, DeletePastReservationsView, StudentMessagesView, DutyTeacherByDateView, TeacherListView, MessageListCreateView
 )
 
 urlpatterns = [
@@ -22,7 +22,8 @@ urlpatterns = [
     path("list/", DutyScheduleListView.as_view(), name="duty-list"),
     path("create/", DutyScheduleCreateView.as_view(), name="duty-create"),
     path("change-password/", ChangePasswordView.as_view(), name="change-password"),
-    path('messages/', StudentMessagesView.as_view(), name='student-messages'),
+    path('messages/', MessageListCreateView.as_view(), name='messages'),
     path('messages/<int:pk>/', StudentMessagesView.as_view(), name='student-message-detail'),
     path("duty-teacher/", DutyTeacherByDateView.as_view(), name="duty-teacher-by-date"),
+    path("teachers/", TeacherListView.as_view(), name="teacher-list"),
 ]

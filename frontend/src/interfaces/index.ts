@@ -17,6 +17,7 @@ export interface TeacherReservation extends Reservation {
 }
 
 export interface User {
+  id: number;
   name: string;
   surname: string;
   student_number: string;
@@ -39,8 +40,17 @@ export interface DutyTeacher {
 }
 
 export interface Student {
+  id: number;
   student_number: string;
   first_name: string;
   last_name: string;
   student_class: string;
+}
+
+export interface Teacher {
+  id: number;
+  first_name: string;
+  last_name: string;
+  student_class: string;
+  student_number: string;
 }

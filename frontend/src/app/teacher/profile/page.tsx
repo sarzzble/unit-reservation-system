@@ -26,7 +26,13 @@ type EmailFormData = z.infer<typeof EmailSchema>;
 type PasswordFormData = z.infer<typeof PasswordSchema>;
 
 export default function TeacherProfilePage() {
-  const { user, setUser, loading: userLoading, error: userError } = useUser();
+  const {
+    user,
+    setUser,
+    loading: userLoading,
+    error: userError,
+    refetch,
+  } = useUser();
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
@@ -63,6 +69,10 @@ export default function TeacherProfilePage() {
       setInitialLoading(false);
     }
   }, [user, userLoading, userError, emailForm]);
+
+  useEffect(() => {
+    refetch();
+  }, []);
 
   const onSubmit = async (data: EmailFormData) => {
     setError("");

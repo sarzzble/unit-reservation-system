@@ -196,7 +196,7 @@ class TeacherReservationSerializer(serializers.ModelSerializer):
 class TeacherStudentSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ["student_number", "first_name", "last_name", "student_class"]
+        fields = ["id", "student_number", "first_name", "last_name", "student_class"]
 
 
 # Nöbetçi listesi
@@ -235,7 +235,16 @@ class PasswordChangeSerializer(serializers.Serializer):
         return value
 
 class MessageSerializer(serializers.ModelSerializer):
+    sender_name = serializers.SerializerMethodField()
+    recipient_name = serializers.SerializerMethodField()
+
     class Meta:
         model = Message
-        fields = ['id', 'title', 'content', 'created_at', 'is_read']
-        read_only_fields = ['created_at']
+        fields = ['id', 'title', 'content', 'created_at', 'is_read', 'sender', 'recipient', 'sender_name', 'recipient_name']
+        read_only_fields = ['created_at', 'sender', 'sender_name', 'recipient_name']
+
+    def get_sender_name(self, obj):
+        return f"{obj.sender.first_name} {obj.sender.last_name}" if obj.sender else None
+
+    def get_recipient_name(self, obj):
+        return f"{obj.recipient.first_name} {obj.recipient.last_name}" if obj.recipient else None

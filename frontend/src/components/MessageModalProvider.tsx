@@ -31,7 +31,13 @@ export default function MessageModalProvider() {
 
   useEffect(() => {
     if (!user || user.is_staff) return;
-    const firstUnread = messages.find((msg) => msg.is_read === false);
+    // Öğrencinin kendi gönderdiği mesajlar modalda gösterilmesin
+    const firstUnread = messages.find(
+      (msg) =>
+        msg.is_read === false &&
+        msg.recipient === user.id &&
+        msg.sender !== user.id
+    );
     if (firstUnread) {
       setUnreadMessage(firstUnread);
       setShowMessageModal(true);

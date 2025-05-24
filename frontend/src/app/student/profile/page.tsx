@@ -32,7 +32,13 @@ type EmailFormData = z.infer<typeof EmailSchema>;
 type PasswordFormData = z.infer<typeof PasswordSchema>;
 
 export default function ProfilePage() {
-  const { user, setUser, loading: userLoading, error: userError } = useUser();
+  const {
+    user,
+    setUser,
+    loading: userLoading,
+    error: userError,
+    refetch,
+  } = useUser();
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
@@ -58,7 +64,10 @@ export default function ProfilePage() {
   });
 
   useEffect(() => {
-    if (userLoading) return;
+    if (userLoading) {
+      setInitialLoading(true);
+      return;
+    }
     if (userError) {
       setError(userError);
       setInitialLoading(false);
@@ -69,6 +78,10 @@ export default function ProfilePage() {
       setInitialLoading(false);
     }
   }, [user, userLoading, userError, emailForm]);
+
+  useEffect(() => {
+    refetch();
+  }, []);
 
   const onSubmit = async (data: EmailFormData) => {
     setError("");

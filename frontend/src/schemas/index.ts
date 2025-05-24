@@ -59,3 +59,17 @@ export const PasswordSchema = z
     message: "Şifreler eşleşmiyor",
     path: ["new_password2"],
   });
+
+export const SendMessageSchema = z.object({
+  recipient: z
+    .string({ required_error: "Alıcı zorunludur" })
+    .min(1, { message: "Alıcı seçilmelidir" }),
+  title: z
+    .string({ required_error: "Konu zorunludur" })
+    .min(1, { message: "Konu zorunludur" })
+    .max(100, { message: "Konu en fazla 100 karakter olabilir" }),
+  content: z
+    .string({ required_error: "Mesaj zorunludur" })
+    .min(1, { message: "Mesaj zorunludur" })
+    .max(500, { message: "Mesaj en fazla 500 karakter olabilir" }),
+});

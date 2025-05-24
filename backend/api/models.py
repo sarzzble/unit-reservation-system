@@ -123,11 +123,12 @@ class DutySchedule(models.Model):
 
 # Mesajlar
 class Message(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="messages")
+    sender = models.ForeignKey('User', on_delete=models.CASCADE, related_name='sent_messages', null=True, blank=True)
+    recipient = models.ForeignKey('User', on_delete=models.CASCADE, related_name='received_messages', null=True, blank=True)
     title = models.CharField(max_length=255)
     content = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
     is_read = models.BooleanField(default=False)
 
     def __str__(self):
-        return f"{self.user.student_number} - {self.title}"
+        return f"{self.sender} -> {self.recipient}: {self.title}"

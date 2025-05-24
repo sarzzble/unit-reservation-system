@@ -10,6 +10,7 @@ interface UserContextType {
   setUser: React.Dispatch<React.SetStateAction<User | null>>;
   loading: boolean;
   error: string;
+  refetch: () => Promise<void>;
 }
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
@@ -19,31 +20,35 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  useEffect(() => {
+  const fetchUser = async () => {
     // Eğer access_token yoksa loading'i false yap!
     if (!getCookie("access_token")) {
       setUser(null);
       setLoading(false);
       return;
     }
-    const fetchUser = async () => {
-      setLoading(true);
-      setError("");
-      try {
-        const userData = await getUserInfo();
-        setUser(userData);
-      } catch {
-        setUser(null);
-        setError("Kullanıcı bilgisi alınamadı");
-      } finally {
-        setLoading(false);
-      }
-    };
+
+    setLoading(true);
+    setError("");
+    try {
+      const userData = await getUserInfo();
+      setUser(userData);
+    } catch {
+      setUser(null);
+      setError("Kullanıcı bilgisi alınamadı");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
     fetchUser();
   }, []);
 
   return (
-    <UserContext.Provider value={{ user, setUser, loading, error }}>
+    <UserContext.Provider
+      value={{ user, setUser, loading, error, refetch: fetchUser }}
+    >
       {children}
     </UserContext.Provider>
   );

@@ -8,6 +8,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.tokens import RefreshToken
 from django_filters.rest_framework import DjangoFilterBackend 
 from django.db.models import Q
+from django.db import models
 
 # Kayıt olmav
 class RegisterView(APIView):
@@ -371,6 +372,7 @@ class UserInfoView(APIView):
     def get(self, request):
         user = request.user
         return Response({
+            "id": user.id,
             "name": user.first_name,
             "surname": user.last_name,
             "student_number": user.student_number,
@@ -396,7 +398,8 @@ class StudentMessagesView(APIView):
 
     def get(self, request):
         user = request.user
-        messages = Message.objects.filter(user=user).order_by('-created_at')
+        # Sadece kullanıcıya gelen mesajlar (recipient=user)
+        messages = Message.objects.filter(recipient=user).order_by('-created_at')
         serializer = MessageSerializer(messages, many=True)
         return Response(serializer.data)
 
@@ -404,9 +407,8 @@ class StudentMessagesView(APIView):
         user = request.user
         if not pk:
             return Response({"error": "Mesaj ID gerekli."}, status=400)
-        try:
-            msg = Message.objects.get(pk=pk, user=user)
-        except Message.DoesNotExist:
+        msg = Message.objects.filter(pk=pk).filter(models.Q(sender=user) | models.Q(recipient=user)).first()
+        if not msg:
             return Response({"error": "Mesaj bulunamadı."}, status=404)
         is_read = request.data.get("is_read")
         if is_read is not None:
@@ -418,14 +420,14 @@ class StudentMessagesView(APIView):
     def delete(self, request, pk=None):
         user = request.user
         if pk:
-            try:
-                msg = Message.objects.get(pk=pk, user=user)
+            msg = Message.objects.filter(pk=pk).filter(models.Q(sender=user) | models.Q(recipient=user)).first()
+            if msg:
                 msg.delete()
                 return Response({"message": "Mesaj silindi."}, status=204)
-            except Message.DoesNotExist:
+            else:
                 return Response({"error": "Mesaj bulunamadı."}, status=404)
         else:
-            deleted, _ = Message.objects.filter(user=user).delete()
+            deleted, _ = Message.objects.filter(models.Q(sender=user) | models.Q(recipient=user)).delete()
             return Response({"message": f"{deleted} mesaj silindi."}, status=200)
 
 class DutyTeacherByDateView(APIView):
@@ -456,6 +458,30 @@ class DutyTeacherByDateView(APIView):
             "last_name": teacher.last_name,
             "email": teacher.email
         })
+
+class TeacherListView(generics.ListAPIView):
+    queryset = User.objects.filter(is_staff=True)
+    serializer_class = TeacherStudentSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+class MessageListCreateView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request):
+        messages = Message.objects.all().order_by('-created_at')
+        serializer = MessageSerializer(messages, many=True)
+        return Response(serializer.data)
+
+    def post(self, request):
+        recipient_id = request.data.get("recipient")
+        if not User.objects.filter(pk=recipient_id).exists():
+            return Response({"recipient": [f"Geçersiz pk \"{recipient_id}\" - obje bulunamadı."]}, status=status.HTTP_400_BAD_REQUEST)
+
+        serializer = MessageSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save(sender=request.user)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 
