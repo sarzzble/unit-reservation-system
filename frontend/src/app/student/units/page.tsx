@@ -1,16 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { getUnits, makeReservation, getDutyTeacherByDate } from "@/lib/api";
 import { AxiosError } from "axios";
 import { StudentNavbar } from "@/components/Navbar";
 import { useRouter } from "next/navigation";
-import { Calendar } from "@/components/ui/calendar";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
 import {
   Dialog,
   DialogContent,
@@ -20,19 +14,30 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { CalendarIcon } from "lucide-react";
-import { format } from "date-fns";
+import { format, addDays } from "date-fns";
 import { tr } from "date-fns/locale";
-import { cn } from "@/lib/utils";
 import { FaTooth } from "react-icons/fa";
+import { CiCalendar } from "react-icons/ci";
 import { Unit, DutyTeacher } from "@/interfaces";
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "@/components/ui/select";
 
 export default function UnitsPage() {
   const router = useRouter();
   const [units, setUnits] = useState<Unit[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [date, setDate] = useState<Date>();
+  const [dateOptions, setDateOptions] = useState<
+    {
+      label: string;
+      value: Date;
+    }[]
+  >([]);
   const [selectedDate, setSelectedDate] = useState<Date>();
   const [selectedUnit, setSelectedUnit] = useState<number | null>(null);
   const [isSearching, setIsSearching] = useState(false);
@@ -41,14 +46,37 @@ export default function UnitsPage() {
   const [dutyTeacher, setDutyTeacher] = useState<DutyTeacher | null>(null);
   const [dutyTeacherError, setDutyTeacherError] = useState("");
 
+  // Dropdown için önümüzdeki haftanın pazartesi-cuma günlerini hesapla
+  useEffect(() => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    let start: Date;
+    if (today.getDay() === 0) {
+      start = addDays(today, 1);
+    } else {
+      const daysUntilNextMonday = 8 - today.getDay();
+      start = addDays(today, daysUntilNextMonday);
+    }
+    const options = Array.from({ length: 5 }, (_, i) => {
+      const d = addDays(start, i);
+      // Gün adı ekle
+      const dayName = format(d, "EEEE", { locale: tr });
+      return {
+        label: `${format(d, "PPP", { locale: tr })} (${dayName})`,
+        value: d,
+      };
+    });
+    setDateOptions(options);
+  }, []);
+
   const isTimeSlotPassed = (timeSlot: string) => {
-    if (!date) return false;
+    if (!selectedDate) return false;
 
     const today = new Date();
-    const selectedDate = new Date(date);
+    const selectedDateObj = new Date(selectedDate);
 
     // If the selected date is not today, return false
-    if (selectedDate.toDateString() !== today.toDateString()) {
+    if (selectedDateObj.toDateString() !== today.toDateString()) {
       return false;
     }
 
@@ -72,7 +100,6 @@ export default function UnitsPage() {
         const formattedDate = format(selectedDate, "yyyy-MM-dd");
         const data = await getUnits(formattedDate);
         setUnits(data);
-        setDate(selectedDate); // Asıl date'i güncelle
         const duty = await getDutyTeacherByDate(formattedDate);
         setDutyTeacher(duty);
         setDutyTeacherError("");
@@ -107,10 +134,10 @@ export default function UnitsPage() {
   };
 
   const handleConfirmReservation = async () => {
-    if (!selectedUnit || !date || !selectedTimeSlot) return;
+    if (!selectedUnit || !selectedDate || !selectedTimeSlot) return;
 
     try {
-      const formattedDate = format(date, "yyyy-MM-dd");
+      const formattedDate = format(selectedDate, "yyyy-MM-dd");
       await makeReservation({
         unit: selectedUnit,
         date: formattedDate,
@@ -158,45 +185,33 @@ export default function UnitsPage() {
               onSubmit={handleSearch}
               className="flex justify-center gap-4 mb-8"
             >
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant={"outline"}
-                    className={cn(
-                      "w-[240px] justify-start text-left font-normal cursor-pointer bg-white/90 backdrop-blur-sm hover:bg-white transition-colors shadow-sm",
-                      !selectedDate && "text-muted-foreground"
-                    )}
-                  >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {selectedDate ? (
-                      format(selectedDate, "PPP", { locale: tr })
-                    ) : (
-                      <span>Tarih seçin</span>
-                    )}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent
-                  className="w-auto p-0 bg-white/95 backdrop-blur-sm shadow-xl border-0"
-                  align="start"
-                >
-                  <Calendar
-                    mode="single"
-                    selected={selectedDate}
-                    onSelect={setSelectedDate}
-                    disabled={(date) => {
-                      const today = new Date();
-                      today.setHours(0, 0, 0, 0);
-                      const isPast = date < today;
-                      const isWeekend =
-                        date.getDay() === 0 || date.getDay() === 6;
-                      return isPast || isWeekend;
-                    }}
-                    locale={tr}
-                    initialFocus
-                    className="rounded-md"
-                  />
-                </PopoverContent>
-              </Popover>
+              <Select
+                value={selectedDate ? selectedDate.getTime().toString() : ""}
+                onValueChange={(val) => {
+                  const found = dateOptions.find(
+                    (opt) => opt.value.getTime().toString() === val
+                  );
+                  setSelectedDate(found ? found.value : undefined);
+                }}
+              >
+                <SelectTrigger className="w-[260px] bg-white/90 shadow-sm flex items-center justify-between cursor-pointer">
+                  <span className="flex items-center gap-2">
+                    <CiCalendar className="w-5 h-5" />
+                    <SelectValue placeholder="Tarih seçin" />
+                  </span>
+                </SelectTrigger>
+                <SelectContent>
+                  {dateOptions.map((opt) => (
+                    <SelectItem
+                      key={opt.value.getTime()}
+                      value={opt.value.getTime().toString()}
+                      className="cursor-pointer"
+                    >
+                      {opt.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
               <Button
                 type="submit"
                 disabled={isSearching || !selectedDate}
@@ -206,7 +221,7 @@ export default function UnitsPage() {
               </Button>
             </form>
             {/* Nöbetçi öğretmen bilgisi */}
-            {date && (
+            {selectedDate && (
               <div className="flex justify-center mb-4">
                 {dutyTeacherError ? (
                   <span className="text-red-600 text-sm font-medium">
@@ -214,7 +229,8 @@ export default function UnitsPage() {
                   </span>
                 ) : dutyTeacher ? (
                   <span className="text-green-700 text-sm font-medium">
-                    {format(date, "PPP", { locale: tr })} günü nöbetçi öğretmen:{" "}
+                    {format(selectedDate, "PPP", { locale: tr })} günü nöbetçi
+                    öğretmen:{" "}
                     <b>
                       {dutyTeacher.first_name} {dutyTeacher.last_name}
                     </b>
@@ -287,13 +303,13 @@ export default function UnitsPage() {
                   <span className="text-red-600">{error}</span>
                 ) : (
                   selectedUnit &&
-                  date &&
+                  selectedDate &&
                   selectedTimeSlot && (
                     <>
                       Ünit {units.find((u) => u.id === selectedUnit)?.number}{" "}
-                      için {format(date, "PPP", { locale: tr })} tarihinde{" "}
-                      {selectedTimeSlot} saatlerinde rezervasyon yapmak
-                      istediğinizden emin misiniz?
+                      için {format(selectedDate, "PPP", { locale: tr })}{" "}
+                      tarihinde {selectedTimeSlot} saatlerinde rezervasyon
+                      yapmak istediğinizden emin misiniz?
                     </>
                   )
                 )}
