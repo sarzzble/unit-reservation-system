@@ -353,7 +353,7 @@ export default function RegisterPage() {
           <div className="text-sm text-center text-gray-600">
             Zaten hesabınız var mı?{" "}
             <Link
-              href="/login"
+              href="/student/login"
               className="font-medium text-green-600 hover:text-green-500 transition-colors duration-200"
             >
               Giriş yapın

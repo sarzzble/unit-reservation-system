@@ -181,7 +181,7 @@ function LoginForm() {
           <div className="text-sm text-center text-gray-600">
             Hesabınız yok mu?{" "}
             <Link
-              href="/students/register"
+              href="/student/register"
               className="font-medium text-green-600 hover:text-green-500 transition-colors duration-200"
             >
               Kayıt olun
