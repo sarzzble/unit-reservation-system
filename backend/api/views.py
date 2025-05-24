@@ -293,7 +293,8 @@ class CancelReservationAPIView(APIView):
         # Eğer öğretmen ise öğrenciye mesaj gönder
         if request.user.is_staff:
             Message.objects.create(
-                user=student_user,
+                sender=request.user,
+                recipient=student_user,
                 title="Rezervasyonunuz İptal Edildi",
                 content=f"{reservation_info} için yaptığınız rezervasyon öğretmen tarafından iptal edildi. Detaylar için öğretmeninizle iletişime geçebilirsiniz."
             )
