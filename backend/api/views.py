@@ -398,8 +398,8 @@ class StudentMessagesView(APIView):
 
     def get(self, request):
         user = request.user
-        # Sadece kullanıcıya gelen mesajlar (recipient=user)
-        messages = Message.objects.filter(recipient=user).order_by('-created_at')
+        # Gelen kutusu: sadece silinmemiş mesajlar
+        messages = Message.objects.filter(recipient=user, recipient_deleted=False).order_by('-created_at')
         serializer = MessageSerializer(messages, many=True)
         return Response(serializer.data)
 
@@ -422,13 +422,39 @@ class StudentMessagesView(APIView):
         if pk:
             msg = Message.objects.filter(pk=pk).filter(models.Q(sender=user) | models.Q(recipient=user)).first()
             if msg:
-                msg.delete()
-                return Response({"message": "Mesaj silindi."}, status=204)
+                # Soft delete mantığı
+                if msg.sender == user:
+                    msg.sender_deleted = True
+                if msg.recipient == user:
+                    msg.recipient_deleted = True
+                # Eğer her iki taraf da silmişse fiziksel olarak sil
+                if msg.sender_deleted and msg.recipient_deleted:
+                    msg.delete()
+                    return Response({"message": "Mesaj tamamen silindi."}, status=204)
+                else:
+                    msg.save()
+                    return Response({"message": "Mesaj kutunuzdan silindi."}, status=200)
             else:
                 return Response({"error": "Mesaj bulunamadı."}, status=404)
         else:
-            deleted, _ = Message.objects.filter(models.Q(sender=user) | models.Q(recipient=user)).delete()
-            return Response({"message": f"{deleted} mesaj silindi."}, status=200)
+            # Tüm mesajları silmek isteyen kullanıcı için
+            user_msgs = Message.objects.filter(models.Q(sender=user) | models.Q(recipient=user))
+            count = 0
+            for msg in user_msgs:
+                changed = False
+                if msg.sender == user and not msg.sender_deleted:
+                    msg.sender_deleted = True
+                    changed = True
+                if msg.recipient == user and not msg.recipient_deleted:
+                    msg.recipient_deleted = True
+                    changed = True
+                if msg.sender_deleted and msg.recipient_deleted:
+                    msg.delete()
+                    count += 1
+                elif changed:
+                    msg.save()
+                    count += 1
+            return Response({"message": f"{count} mesaj kutunuzdan silindi."}, status=200)
 
 class DutyTeacherByDateView(APIView):
     permission_classes = [permissions.IsAuthenticated]
@@ -482,6 +508,16 @@ class MessageListCreateView(APIView):
             serializer.save(sender=request.user)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class SentMessagesView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request):
+        user = request.user
+        # Gönderilen kutusu: sadece silinmemiş mesajlar
+        messages = Message.objects.filter(sender=user, sender_deleted=False).order_by('-created_at')
+        serializer = MessageSerializer(messages, many=True)
+        return Response(serializer.data)
 
 
 

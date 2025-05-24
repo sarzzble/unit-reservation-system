@@ -124,7 +124,10 @@ export default function SentMessagesPage() {
             >
               Vazgeç
             </Button>
-            <Button onClick={confirmDelete} className="bg-red-600 text-white">
+            <Button
+              onClick={confirmDelete}
+              className="bg-red-600 text-white cursor-pointer hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
               Sil
             </Button>
           </DialogFooter>
