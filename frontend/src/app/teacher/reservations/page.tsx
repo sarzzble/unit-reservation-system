@@ -193,9 +193,9 @@ export default function TeacherUnitsPage() {
               </div>
             )}
 
-            <div className="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4">
+            <div className="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4 max-md:items-baseline">
               <div>
-                <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">
+                <h1 className="text-2xl sm:text-3xl font-bold text-blue-700">
                   Ünit Rezervasyonları
                 </h1>
                 <p className="text-gray-600 mt-1">
@@ -248,8 +248,8 @@ export default function TeacherUnitsPage() {
               </Alert>
             )}
 
-            <div className="bg-white rounded-lg shadow-lg overflow-hidden">
-              <Table>
+            <div className="bg-white rounded-lg shadow-lg overflow-x-auto">
+              <Table className="min-w-[600px] text-sm">
                 <TableHeader>
                   <TableRow>
                     <TableHead>Ünit No</TableHead>
@@ -270,10 +270,12 @@ export default function TeacherUnitsPage() {
                         })}
                       </TableCell>
                       <TableCell>{reservation.time_slot}</TableCell>
-                      <TableCell className="flex items-center gap-2">
+                      <TableCell className="flex items-center gap-2 min-w-[180px]">
                         <FaUserGraduate className="text-gray-500" />
-                        {reservation.user.first_name}{" "}
-                        {reservation.user.last_name}
+                        <span className="truncate max-w-[110px] block">
+                          {reservation.user.first_name}{" "}
+                          {reservation.user.last_name}
+                        </span>
                         <span className="text-gray-500">
                           ({reservation.user.student_number})
                         </span>
