@@ -465,10 +465,8 @@ class DutyTeacherByDateView(APIView):
         if weekday > 4:
             return Response({"error": "Hafta sonu için nöbetçi öğretmen yok."}, status=400)
 
-        # Hangi gün ise o günün alanında bu tarih olan kaydı bul
-        day_field = ["monday", "tuesday", "wednesday", "thursday", "friday"][weekday]
-        filter_kwargs = {day_field: date_str}
-        duty = DutySchedule.objects.filter(**filter_kwargs).first()
+        # Doğrudan date alanına göre filtrele
+        duty = DutySchedule.objects.filter(date=target_date).first()
         if not duty:
             return Response({"error": "Nöbetçi öğretmen bulunamadı."}, status=404)
         teacher = duty.teacher

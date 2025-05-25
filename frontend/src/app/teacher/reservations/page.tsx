@@ -53,25 +53,10 @@ export default function TeacherUnitsPage() {
   const [dutyTeacherName, setDutyTeacherName] = useState<string>("");
 
   useEffect(() => {
-    if (userLoading) {
-      return; // Wait until user loading is complete
-    }
-
-    if (!user) {
-      setLoading(false);
-      router.push("/teacher/login"); // Redirect if no user is logged in
-      return;
-    }
-
-    if (!user.is_staff) {
-      setLoading(false);
-      router.push("/teacher/login"); // Redirect if the user is not a teacher
-      return;
-    }
-
+    if (userLoading) return;
     const fetchReservations = async () => {
       try {
-        setLoading(true); // Start loading
+        setLoading(true);
         const reservationsData = await getReservations();
         setReservations(reservationsData);
       } catch (error) {
@@ -86,15 +71,14 @@ export default function TeacherUnitsPage() {
           }
           setError(error.response?.data?.error || "Bir hata oluştu");
         } else {
-          setError("Beklenmeyen bir hata oluştu");
+          setError("Rezervasyonlar yüklenirken bir hata oluştu");
         }
       } finally {
-        setLoading(false); // Stop loading
+        setLoading(false);
       }
     };
-
     fetchReservations();
-  }, [userLoading, user, router]);
+  }, [userLoading, router]);
 
   useEffect(() => {
     if (!user || !user.is_staff) return;
