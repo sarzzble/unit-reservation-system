@@ -318,4 +318,13 @@ export const deleteUserMessage = async (id: number) => {
   }
 };
 
+export const getDutyScheduleList = async () => {
+  try {
+    const response = await api.get("/duty-schedule/");
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
 export default api;

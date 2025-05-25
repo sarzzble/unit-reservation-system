@@ -111,15 +111,11 @@ class SystemSetting(models.Model):
 # nöbetçi listesi
 class DutySchedule(models.Model):
     teacher = models.ForeignKey(User, on_delete=models.CASCADE, related_name="duty_schedules")
-    monday = models.TextField(blank=True,default="")
-    tuesday = models.TextField(blank=True,default="")
-    wednesday = models.TextField(blank=True,default="")
-    thursday = models.TextField(blank=True,default="")
-    friday = models.TextField(blank=True,default="")
+    date = models.DateField(unique=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"Duty Schedule by {self.teacher.email} on {self.created_at.date()}"
+        return f"Duty Schedule: {self.teacher.email} - {self.date}"
 
 # Mesajlar
 class Message(models.Model):

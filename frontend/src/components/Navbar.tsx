@@ -94,19 +94,28 @@ function NavbarContent({ isTeacher }: { isTeacher: boolean }) {
                 Rezervasyonlarım
               </Link>
             )}
-            <Link
-              href={isTeacher ? "/teacher/profile" : "/student/profile"}
-              className="flex items-center gap-2 text-gray-800 hover:opacity-80 transition-opacity px-3 py-2 rounded-md text-sm font-medium"
-            >
-              <FaUser className="w-4 h-4" />
-              Profilim
-            </Link>
+            {isTeacher && (
+              <Link
+                href="/teacher/duty-schedule"
+                className="flex items-center gap-2 text-gray-800 hover:opacity-80 transition-opacity px-3 py-2 rounded-md text-sm font-medium"
+              >
+                <LuCalendarClock className="w-4 h-4" />
+                Nöbetçi Listesi
+              </Link>
+            )}
             <Link
               href={isTeacher ? "/teacher/messages" : "/student/messages"}
               className="flex items-center gap-2 text-gray-800 hover:opacity-80 transition-opacity px-3 py-2 rounded-md text-sm font-medium"
             >
               <FaRegEnvelope className="w-4 h-4" />
               Mesajlar
+            </Link>
+            <Link
+              href={isTeacher ? "/teacher/profile" : "/student/profile"}
+              className="flex items-center gap-2 text-gray-800 hover:opacity-80 transition-opacity px-3 py-2 rounded-md text-sm font-medium"
+            >
+              <FaUser className="w-4 h-4" />
+              Profilim
             </Link>
             <button
               onClick={handleLogout}
@@ -133,14 +142,16 @@ function NavbarContent({ isTeacher }: { isTeacher: boolean }) {
                 Rezervasyonlarım
               </Link>
             )}
-            <Link
-              href={isTeacher ? "/teacher/profile" : "/student/profile"}
-              className="flex items-center gap-2 text-gray-800 px-4 py-2 text-sm"
-              onClick={() => setIsMenuOpen(false)}
-            >
-              <FaUser className="w-4 h-4" />
-              Profilim
-            </Link>
+            {isTeacher && (
+              <Link
+                href="/teacher/duty-schedule"
+                className="flex items-center gap-2 text-gray-800 px-4 py-2 text-sm"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                <LuCalendarClock className="w-4 h-4" />
+                Nöbetçi Listesi
+              </Link>
+            )}
             <Link
               href={isTeacher ? "/teacher/messages" : "/student/messages"}
               className="flex items-center gap-2 text-gray-800 px-4 py-2 text-sm"
@@ -148,6 +159,14 @@ function NavbarContent({ isTeacher }: { isTeacher: boolean }) {
             >
               <FaRegEnvelope className="w-4 h-4" />
               Mesajlar
+            </Link>
+            <Link
+              href={isTeacher ? "/teacher/profile" : "/student/profile"}
+              className="flex items-center gap-2 text-gray-800 px-4 py-2 text-sm"
+              onClick={() => setIsMenuOpen(false)}
+            >
+              <FaUser className="w-4 h-4" />
+              Profilim
             </Link>
             <button
               onClick={() => {

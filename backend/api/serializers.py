@@ -201,14 +201,24 @@ class TeacherStudentSerializer(serializers.ModelSerializer):
 
 # Nöbetçi listesi
 class DutyScheduleSerializer(serializers.ModelSerializer):
+    teacher = serializers.SerializerMethodField()
+
     class Meta:
         model = DutySchedule
         fields = [
-            "id", "teacher",
-            "monday", "tuesday", "wednesday", "thursday", "friday",
-            "created_at"
+            "id", "teacher", "date", "created_at"
         ]
         read_only_fields = ["teacher", "created_at"]
+
+    def get_teacher(self, obj):
+        t = obj.teacher
+        return {
+            "id": t.id,
+            "first_name": t.first_name,
+            "last_name": t.last_name,
+            "student_number": t.student_number,
+            "email": t.email,
+        }
 
     def create(self, validated_data):
         request = self.context.get("request")
