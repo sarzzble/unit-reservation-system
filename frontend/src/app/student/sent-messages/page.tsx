@@ -21,6 +21,9 @@ type SentMessage = {
   title: string;
   content: string;
   created_at: string;
+  is_read: boolean;
+  recipient: number;
+  recipient_name: string;
 };
 
 export default function SentMessagesPage() {
@@ -133,6 +136,9 @@ export default function SentMessagesPage() {
                       </span>
                       <span className="text-xs text-gray-400 mt-2 block">
                         {new Date(msg.created_at).toLocaleString("tr-TR")}
+                      </span>
+                      <span className="text-xs text-gray-500 block">
+                        Alıcı: {msg.recipient_name}
                       </span>
                     </div>
                     <div
