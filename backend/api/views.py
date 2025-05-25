@@ -349,14 +349,6 @@ class DeletePastReservationsView(APIView):
                 res.delete()
             return Response({"message": f"{count} adet geçmiş rezervasyon başarıyla silindi."}, status=status.HTTP_200_OK)
 
-# Nöbetçi listesi (Admin ekler)
-class DutyScheduleCreateView(generics.CreateAPIView):
-    queryset = DutySchedule.objects.all()
-    serializer_class = DutyScheduleSerializer
-    permission_classes = [permissions.IsAuthenticated]
-
-    def perform_create(self, serializer):
-        serializer.save(teacher=self.request.user)
 
 # Nöbetci listesi gönderilir.
 class DutyScheduleListView(generics.ListAPIView):
